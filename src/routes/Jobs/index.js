@@ -5,6 +5,6 @@ export default {
   path,
   authRequired: true,
   component: loadable(() =>
-    import(/* webpackChunkName: 'Projects' */ './components/ProjectsPage')
+    import(/* webpackChunkName: 'Jobs' */ './components/JobsPage')
   )
 }

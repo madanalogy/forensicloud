@@ -1,26 +1,24 @@
 import React from 'react'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
 import { SuspenseWithPerf } from 'reactfire'
-import ProjectRoute from 'routes/Projects/routes/Project'
+import JobRoute from 'routes/Jobs/routes/Job'
 import LoadingSpinner from 'components/LoadingSpinner'
 import { renderChildren } from 'utils/router'
-import ProjectsList from '../ProjectsList'
+import JobsList from '../JobsList'
 
-function ProjectsPage() {
+function JobsPage() {
   const match = useRouteMatch()
   return (
     <Switch>
       {/* Child routes */}
-      {renderChildren([ProjectRoute])}
+      {renderChildren([JobRoute])}
       {/* Main Route */}
       <Route
         exact
         path={match.path}
         render={() => (
-          <SuspenseWithPerf
-            fallback={<LoadingSpinner />}
-            traceId="load-projects">
-            <ProjectsList />
+          <SuspenseWithPerf fallback={<LoadingSpinner />} traceId="load-jobs">
+            <JobsList />
           </SuspenseWithPerf>
         )}
       />
@@ -28,4 +26,4 @@ function ProjectsPage() {
   )
 }
 
-export default ProjectsPage
+export default JobsPage

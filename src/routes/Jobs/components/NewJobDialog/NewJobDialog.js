@@ -8,11 +8,11 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
-import styles from './NewProjectDialog.styles'
+import styles from './NewJobDialog.styles'
 
 const useStyles = makeStyles(styles)
 
-function NewProjectDialog({ onSubmit, open, onRequestClose }) {
+function NewJobDialog({ onSubmit, open, onRequestClose }) {
   const classes = useStyles()
   const {
     register,
@@ -23,14 +23,14 @@ function NewProjectDialog({ onSubmit, open, onRequestClose }) {
 
   return (
     <Dialog open={open} onClose={onRequestClose}>
-      <DialogTitle id="new-project-dialog-title">New Project</DialogTitle>
+      <DialogTitle id="new-job-dialog-title">New Job</DialogTitle>
       <form className={classes.root} onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
           <TextField
             error={!!errors.name}
             helperText={errors.name && 'Name is required'}
             name="name"
-            label="Project Name"
+            label="Job Name"
             inputRef={register({
               required: true
             })}
@@ -54,10 +54,10 @@ function NewProjectDialog({ onSubmit, open, onRequestClose }) {
   )
 }
 
-NewProjectDialog.propTypes = {
+NewJobDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired
 }
 
-export default NewProjectDialog
+export default NewJobDialog

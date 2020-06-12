@@ -68,7 +68,7 @@ function Home() {
             </Typography>
             <ul>
               <li>
-                <Link to={LIST_PATH}>Projects</Link>
+                <Link to={LIST_PATH}>Jobs</Link>
               </li>
               <li>
                 <Link to={ACCOUNT_PATH}>Account</Link>

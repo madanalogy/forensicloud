@@ -9,28 +9,28 @@ import DeleteIcon from '@material-ui/icons/Delete'
 import { makeStyles } from '@material-ui/core/styles'
 import { LIST_PATH } from 'constants/paths'
 import { useNotifications } from 'modules/notification'
-import styles from './ProjectTile.styles'
+import styles from './JobTile.styles'
 
 const useStyles = makeStyles(styles)
 
-function ProjectTile({ name, projectId, showDelete }) {
+function JobTile({ name, jobId, showDelete }) {
   const classes = useStyles()
   const history = useHistory()
   const { showError, showSuccess } = useNotifications()
   const firestore = useFirestore()
 
-  function goToProject() {
-    return history.push(`${LIST_PATH}/${projectId}`)
+  function goToJob() {
+    return history.push(`${LIST_PATH}/${jobId}`)
   }
 
-  function deleteProject() {
+  function deleteJob() {
     return firestore
-      .doc(`projects/${projectId}`)
+      .doc(`jobs/${jobId}`)
       .delete()
-      .then(() => showSuccess('Project deleted successfully'))
+      .then(() => showSuccess('Job deleted successfully'))
       .catch((err) => {
         console.error('Error:', err) // eslint-disable-line no-console
-        showError(err.message || 'Could not delete project')
+        showError(err.message || 'Could not delete job')
         return Promise.reject(err)
       })
   }
@@ -38,12 +38,12 @@ function ProjectTile({ name, projectId, showDelete }) {
   return (
     <Paper className={classes.root}>
       <div className={classes.top}>
-        <span className={classes.name} onClick={goToProject}>
+        <span className={classes.name} onClick={goToJob}>
           {name || 'No Name'}
         </span>
         {showDelete ? (
           <Tooltip title="delete">
-            <IconButton onClick={deleteProject}>
+            <IconButton onClick={deleteJob}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -53,14 +53,14 @@ function ProjectTile({ name, projectId, showDelete }) {
   )
 }
 
-ProjectTile.propTypes = {
-  projectId: PropTypes.string.isRequired,
+JobTile.propTypes = {
+  jobId: PropTypes.string.isRequired,
   showDelete: PropTypes.bool,
   name: PropTypes.string
 }
 
-ProjectTile.defaultProps = {
+JobTile.defaultProps = {
   showDelete: true
 }
 
-export default ProjectTile
+export default JobTile
