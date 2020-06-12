@@ -1,0 +1,27 @@
+{
+  "generator-react-firebase": {
+    "promptValues": {
+      "githubUser": "madanalogy",
+      "includeRedux": false,
+      "includeFirestore": true,
+      "otherFeatures": [
+        "Continuous Integration config",
+        "Firebase Cloud Messaging",
+        "Firebase Functions (with ESNext support)",
+        "Tests for Firebase Functions (Mocha/Chai or Jest)",
+        "Tests for React Components (Jest)",
+        "Tests for UI (Cypress)",
+        "Firebase Analytics",
+        "Client Side Error Reporting (Stackdriver)"
+      ],
+      "functionsTestTool": "jest",
+      "firebaseKey": "AIzaSyDuOKigaVBZPX8kA8WovTRWe_GIYympi5Y",
+      "firebaseProjectId": "forensicloud",
+      "messagingSenderId": "346890162255",
+      "appId": "1:346890162255:web:34da2c4c4dcbac1311da3a",
+      "measurementId": "G-8D7455TLZS",
+      "firebasePublicVapidKey": "BGoZTjv2u1aLX6wuhcABEfSYHRog5a4RWjFwCxl0lP4HVcJBnuJYNhW7ibcKtM0Cp6NEo0WsXPldYUYo6371a1o",
+      "ciProvider": "githubActions"
+    }
+  }
+}

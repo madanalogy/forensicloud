@@ -1,0 +1,24 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+        "node": "10"
+      }
+    }]
+  ],
+  "plugins": [
+    "lodash",
+    ["module-resolver", {
+      "root": ["./src"]
+    }]
+  ],
+  "env": {
+    "production": {
+      "presets": [
+        ["minify", {
+          "keepFnName": true
+        }]
+      ]
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "database": {
+      "port": 9000
+    },
+    "hosting": {
+      "port": 3000
+    },
+    "functions": {
+      "port": 5001
+    },
+    "pubsub": {
+      "port": 8085
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "build",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "jsconfig.json",
+      "cypress/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": {
+    "predeploy": [
+      "if [ \"${CI}\" = \"true\" ]; then echo Skipping functions build since environment is CI; else npm --prefix \"$RESOURCE_DIR\" run build; fi"
+    ],
+    "ignore": [
+      "**/.*",
+      "**/*.spec.js",
+      "**/node_modules/**",
+      "jest.config.js",
+      "coverage/**",
+      "src",
+      "scripts/**",
+      "jsconfig.json"
+    ]
+  }
+}
