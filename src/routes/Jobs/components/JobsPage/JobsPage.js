@@ -6,12 +6,12 @@ import LoadingSpinner from 'components/LoadingSpinner'
 import { renderChildren } from 'utils/router'
 import JobsList from '../JobsList'
 
-function JobsPage() {
+function JobsPage(routes, parentProps) {
   const match = useRouteMatch()
   return (
     <Switch>
       {/* Child routes */}
-      {renderChildren([JobRoute])}
+      {renderChildren([JobRoute], parentProps)}
       {/* Main Route */}
       <Route
         exact

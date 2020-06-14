@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { to } from '../utils/async'
+import { to } from 'utils/async'
 
 /**
  * Index user's by placing their displayName into the users_public collection
@@ -75,6 +75,7 @@ async function indexUser(change, context) {
  * users collection. Writes data to "users_public" collection.
  * @type {functions.CloudFunction}
  */
-export default functions.firestore
-  .document('/users/{userId}')
+export default functions
+  .region('asia-east2')
+  .firestore.document('/users/{userId}')
   .onWrite(indexUser)

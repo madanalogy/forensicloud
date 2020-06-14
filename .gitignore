@@ -13,6 +13,9 @@ src/config.js
 .env.local
 .env.test
 
+# Firebase
+.firebase
+
 # Functions
 functions/etc
 functions/dist

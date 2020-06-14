@@ -1,0 +1,5 @@
+node_modules/**
+dist/**
+test/mocha.opts
+coverage
+.nyc_output

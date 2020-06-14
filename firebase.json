@@ -20,6 +20,9 @@
     },
     "pubsub": {
       "port": 8085
+    },
+    "ui": {
+      "enabled": true
     }
   },
   "firestore": {
@@ -28,13 +31,7 @@
   },
   "hosting": {
     "public": "build",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**",
-      "jsconfig.json",
-      "cypress/**"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "**",
@@ -43,9 +40,7 @@
     ]
   },
   "functions": {
-    "predeploy": [
-      "if [ \"${CI}\" = \"true\" ]; then echo Skipping functions build since environment is CI; else npm --prefix \"$RESOURCE_DIR\" run build; fi"
-    ],
+    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run lint"],
     "ignore": [
       "**/.*",
       "**/*.spec.js",
@@ -55,6 +50,7 @@
       "src",
       "scripts/**",
       "jsconfig.json"
-    ]
+    ],
+    "source": "functions"
   }
 }
