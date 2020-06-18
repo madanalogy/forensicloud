@@ -37,6 +37,12 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             margin="normal"
             fullWidth
           />
+          <br />
+          <label htmlFor="type">Job Type: </label>
+          <select name="type" ref={register} required>
+            <option value="transfer">Transfer</option>
+            <option value="takeout">Takeout</option>
+          </select>
         </DialogContent>
         <DialogActions>
           <Button onClick={onRequestClose} color="secondary">
