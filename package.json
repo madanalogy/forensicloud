@@ -6,7 +6,8 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "react-scripts build",
-    "deploy": "firebase-ci deploy -s --force",
+    "deploy": "firebase deploy --force",
+    "deploy:ci": "firebase-ci deploy -s --force",
     "eject": "react-scripts eject",
     "start": "react-scripts start",
     "start:dist": "npm run build && firebase emulators:start --only hosting",
@@ -73,7 +74,7 @@
     "eslint-plugin-standard": "^4.0.1",
     "firebase-admin": "^8.12.0",
     "firebase-ci": "^0.13.0",
-    "firebase-tools": "^8.4.2",
+    "firebase-tools": "^8.4.3",
     "husky": "^4.2.5",
     "lint-staged": "^10.2.2",
     "prettier": "^2.0.5",
