@@ -67,7 +67,6 @@ async function startJob(change, context) {
           } else {
             console.log('No such source!')
           }
-          transferName = createJob(jobId, transferSpec)
         } else if (doc.get('type') === 'takeout') {
           // TODO: Implement takeout
         } else {
@@ -78,13 +77,16 @@ async function startJob(change, context) {
         console.log('Error getting document', err)
       })
   )
-  if (transferName !== '') {
-    await to(
-      jobRef.update({
-        transferName: transferName,
-        status: 'IN_PROGRESS'
-      })
-    )
+  if (transferSpec !== {}) {
+    transferName = await createJob(jobId, transferSpec)
+    if (transferName !== '') {
+      await to(
+        jobRef.update({
+          transferName: transferName,
+          status: 'IN_PROGRESS'
+        })
+      )
+    }
   }
 }
 
