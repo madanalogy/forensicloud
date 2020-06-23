@@ -19,7 +19,8 @@ const storage = new Storage()
 async function startJob(change, context) {
   const { jobId } = context.params || {}
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
-  const bucketName = `forensicloud-${jobId}`
+  const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
+  const bucketName = `forensicloud-${hash}`
   let transferSpec = {}
   let transferName = ''
   await to(
@@ -84,7 +85,7 @@ async function startJob(change, context) {
       })
   )
   if (transferSpec !== {}) {
-    transferName = await createJob(jobId, transferSpec)
+    transferName = await createJob(jobId, transferSpec, bucketName)
     if (transferName !== '') {
       await to(
         jobRef.update({
@@ -125,11 +126,11 @@ async function createBucket(bucketName) {
  * Creates the transfer job.
  * @param {string} jobId - jobId data
  * @param {any} transferSpec - Transfer Job Spec
+ * @param {string} bucketName - Name of the bucket
  * @returns {string} Name of the transfer
  */
-async function createJob(jobId, transferSpec) {
+async function createJob(jobId, transferSpec, bucketName) {
   const authClient = await authorize()
-  const bucketName = `forensicloud-${jobId}`
   if (await createBucket(bucketName)) return ''
   const date = new Date()
   const request = {
