@@ -36,7 +36,10 @@ function useJobsList() {
       .add({
         ...newInstance,
         createdBy: auth.uid,
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: FieldValue.serverTimestamp(),
+        endTime: FieldValue.serverTimestamp(),
+        transferName: '',
+        status: ''
       })
       .then(() => {
         toggleDialog()
