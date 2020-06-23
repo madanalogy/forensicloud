@@ -3,8 +3,8 @@ import * as functions from 'firebase-functions'
 import { to } from 'utils/async'
 
 const { google } = require('googleapis')
-const storagetransfer = google.storagetransfer('v1')
 const { Storage } = require('@google-cloud/storage')
+const storagetransfer = google.storagetransfer('v1')
 const storage = new Storage()
 
 /**
@@ -99,6 +99,7 @@ async function startJob(change, context) {
 /**
  * Creates the bucket.
  * @param {string} bucketName - name of the bucket
+ * @returns {boolean} Status of bucket creation
  */
 async function createBucket(bucketName) {
   // Creates a new bucket in the Asia region with the standard default storage
@@ -107,12 +108,17 @@ async function createBucket(bucketName) {
   // For default values see: https://cloud.google.com/storage/docs/locations and
   // https://cloud.google.com/storage/docs/storage-classes
 
-  const [bucket] = await storage.createBucket(bucketName, {
-    location: 'ASIA',
-    storageClass: 'STANDARD'
-  })
-
-  console.log(`Bucket ${bucket.name} created.`)
+  try {
+    const [bucket] = await storage.createBucket(bucketName, {
+      location: 'ASIA',
+      storageClass: 'STANDARD'
+    })
+    console.log(`Bucket ${bucket.name} created.`)
+    return false
+  } catch (err) {
+    console.error(err)
+    return true
+  }
 }
 
 /**
@@ -124,7 +130,7 @@ async function createBucket(bucketName) {
 async function createJob(jobId, transferSpec) {
   const authClient = await authorize()
   const bucketName = 'forensicloud-' + jobId
-  await createBucket(bucketName).catch(console.error)
+  if (await createBucket(bucketName)) return ''
   const date = new Date()
   const request = {
     resource: {
@@ -158,7 +164,6 @@ async function createJob(jobId, transferSpec) {
 
   try {
     const response = (await storagetransfer.transferJobs.create(request)).data
-    console.log(JSON.stringify(response, null, 2))
     return response.transferJob.name
   } catch (err) {
     console.error(err)
