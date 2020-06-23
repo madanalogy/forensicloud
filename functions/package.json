@@ -23,6 +23,7 @@
     "test:watch": "npm test -- --watch"
   },
   "dependencies": {
+    "@google-cloud/storage": "^5.1.1",
     "firebase-admin": "^8.12.1",
     "firebase-functions": "^3.6.2",
     "glob": "^7.1.6",

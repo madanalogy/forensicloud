@@ -1,6 +1,11 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
 
+const { google } = require('googleapis')
+const storagetransfer = google.storagetransfer('v1')
+const { Storage } = require('@google-cloud/storage')
+const storage = new Storage()
+
 /**
  * Starts a cloud service job.
  * @param {functions.Change} change - Database event from function being
@@ -13,7 +18,152 @@ import * as functions from 'firebase-functions'
  */
 async function startJob(change, context) {
   const { jobId } = context.params || {}
-  console.log(jobId)
+  const jobRef = admin.firestore().collection('jobs').doc(jobId)
+  const bucketName = 'forensicloud-' + jobId
+  await createBucket(bucketName).catch(console.error)
+  let transferSpec = {}
+  let transferName = ''
+  await jobRef
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        console.log('No such document!')
+      } else if (doc.get('type') === 'transfer') {
+        if (doc.get('source') === 'aws') {
+          transferSpec = {
+            awsS3DataSource: {
+              bucketName: doc.get('sourceName'),
+              awsAccessKey: {
+                accessKeyId: doc.get('awsIdAzureCon'),
+                secretAccessKey: doc.get('accessKey')
+              }
+            },
+            gcsDataSink: {
+              bucketName
+            }
+          }
+        } else if (doc.get('source') === 'azure') {
+          transferSpec = {
+            azureBlobStorageDataSource: {
+              storageAccount: doc.get('sourceName'),
+              azureCredentials: {
+                sasToken: doc.get('accessKey')
+              },
+              container: doc.get('awsIdAzureCon')
+            },
+            gcsDataSink: {
+              bucketName
+            }
+          }
+        } else if (doc.get('source') === 'gcloud') {
+          transferSpec = {
+            gcsDataSource: {
+              bucketName: doc.get('sourceName')
+            },
+            gcsDataSink: {
+              bucketName
+            }
+          }
+        } else {
+          console.log('No such source!')
+        }
+        transferName = createJob(jobId, transferSpec)
+      } else if (doc.get('type') === 'takeout') {
+        // TODO: Implement takeout
+      } else {
+        console.log('Invalid type parameter')
+      }
+    })
+    .catch((err) => {
+      console.log('Error getting document', err)
+    })
+  if (transferName !== '') {
+    await jobRef.set(
+      {
+        transferName
+      },
+      { merge: true }
+    )
+  }
+}
+
+/**
+ * Creates the bucket.
+ * @param {string} bucketName - name of the bucket
+ */
+async function createBucket(bucketName) {
+  // Creates a new bucket in the Asia region with the standard default storage
+  // class. Leave the second argument blank for default settings.
+  //
+  // For default values see: https://cloud.google.com/storage/docs/locations and
+  // https://cloud.google.com/storage/docs/storage-classes
+
+  const [bucket] = await storage.createBucket(bucketName, {
+    location: 'ASIA',
+    storageClass: 'STANDARD'
+  })
+
+  console.log(`Bucket ${bucket.name} created.`)
+}
+
+/**
+ * Creates the transfer job.
+ * @param {string} jobId - jobId data
+ * @param {any} transferSpec - Transfer Job Spec
+ * @returns {string} Name of the transfer
+ */
+async function createJob(jobId, transferSpec) {
+  const authClient = await authorize()
+  const date = new Date()
+  const request = {
+    resource: {
+      description: jobId,
+      status: 'ENABLED',
+      projectId: 'forensicloud',
+      notificationConfig: {
+        pubsubTopic: 'projects/forensicloud/topics/jobs',
+        payloadFormat: 'JSON'
+      },
+      schedule: {
+        scheduleStartDate: {
+          day: date.getDate(),
+          month: date.getMonth(),
+          year: date.getFullYear()
+        },
+        scheduleEndDate: {
+          day: date.getDate(),
+          month: date.getMonth(),
+          year: date.getFullYear()
+        },
+        startTimeOfDay: {
+          hours: date.getHours(),
+          minutes: date.getMinutes()
+        }
+      },
+      transferSpec
+    },
+    auth: authClient
+  }
+
+  try {
+    const response = (await storagetransfer.transferJobs.create(request)).data
+    console.log(JSON.stringify(response, null, 2))
+    return response.transferJob.name
+  } catch (err) {
+    console.error(err)
+    return ''
+  }
+}
+
+/**
+ * Authorises application for transfer job.
+ * @returns {google.auth.GoogleAuth} authClient
+ */
+async function authorize() {
+  const auth = new google.auth.GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+  })
+  return auth.getClient()
 }
 
 /**
