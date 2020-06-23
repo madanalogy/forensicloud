@@ -9,7 +9,7 @@ import { to } from 'utils/async'
  * @param {admin.firestore.DataSnapshot} change.after - Snapshot of data after change
  * @param {functions.EventContext} context - Function context which includes
  * data about the event. More info in docs:
- * https://firebase.google.com/docs/reference/functions/functions.EventContext
+ * https://firebase.google.com/docs/reference/functions/cloud_functions_.eventcontext
  * @returns {Promise} Resolves with user's profile
  */
 async function indexUser(change, context) {
