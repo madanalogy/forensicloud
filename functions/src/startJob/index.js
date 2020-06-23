@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
+import { to } from 'utils/async'
 
 const { google } = require('googleapis')
 const storagetransfer = google.storagetransfer('v1')
@@ -14,75 +15,78 @@ const storage = new Storage()
  * @param {functions.EventContext} context - Function context. More info in docs:
  * https://firebase.google.com/docs/reference/functions/cloud_functions_.eventcontext
  * https://cloud.google.com/functions/docs/writing/background#function_parameters
- * @returns {Promise} Resolves with user's profile
  */
 async function startJob(change, context) {
   const { jobId } = context.params || {}
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
   const bucketName = 'forensicloud-' + jobId
-  await createBucket(bucketName).catch(console.error)
   let transferSpec = {}
   let transferName = ''
-  await jobRef
-    .get()
-    .then((doc) => {
-      if (!doc.exists) {
-        console.log('No such document!')
-      } else if (doc.get('type') === 'transfer') {
-        if (doc.get('source') === 'aws') {
-          transferSpec = {
-            awsS3DataSource: {
-              bucketName: doc.get('sourceName'),
-              awsAccessKey: {
-                accessKeyId: doc.get('awsIdAzureCon'),
-                secretAccessKey: doc.get('accessKey')
-              }
-            },
-            gcsDataSink: {
-              bucketName
-            }
-          }
-        } else if (doc.get('source') === 'azure') {
-          transferSpec = {
-            azureBlobStorageDataSource: {
-              storageAccount: doc.get('sourceName'),
-              azureCredentials: {
-                sasToken: doc.get('accessKey')
+  await to(
+    jobRef
+      .get()
+      .then((doc) => {
+        if (!doc.exists) {
+          console.log('No such document!')
+        } else if (doc.get('type') === 'transfer') {
+          if (doc.get('source') === 'aws') {
+            transferSpec = {
+              awsS3DataSource: {
+                bucketName: doc.get('sourceName'),
+                awsAccessKey: {
+                  accessKeyId: doc.get('awsIdAzureCon'),
+                  secretAccessKey: doc.get('accessKey')
+                }
               },
-              container: doc.get('awsIdAzureCon')
-            },
-            gcsDataSink: {
-              bucketName
+              gcsDataSink: {
+                bucketName
+              }
             }
-          }
-        } else if (doc.get('source') === 'gcloud') {
-          transferSpec = {
-            gcsDataSource: {
-              bucketName: doc.get('sourceName')
-            },
-            gcsDataSink: {
-              bucketName
+          } else if (doc.get('source') === 'azure') {
+            transferSpec = {
+              azureBlobStorageDataSource: {
+                storageAccount: doc.get('sourceName'),
+                azureCredentials: {
+                  sasToken: doc.get('accessKey')
+                },
+                container: doc.get('awsIdAzureCon')
+              },
+              gcsDataSink: {
+                bucketName
+              }
             }
+          } else if (doc.get('source') === 'gcloud') {
+            transferSpec = {
+              gcsDataSource: {
+                bucketName: doc.get('sourceName')
+              },
+              gcsDataSink: {
+                bucketName
+              }
+            }
+          } else {
+            console.log('No such source!')
           }
+          transferName = createJob(jobId, transferSpec)
+        } else if (doc.get('type') === 'takeout') {
+          // TODO: Implement takeout
         } else {
-          console.log('No such source!')
+          console.log('Invalid type parameter')
         }
-        transferName = createJob(jobId, transferSpec)
-      } else if (doc.get('type') === 'takeout') {
-        // TODO: Implement takeout
-      } else {
-        console.log('Invalid type parameter')
-      }
-    })
-    .catch((err) => {
-      console.log('Error getting document', err)
-    })
+      })
+      .catch((err) => {
+        console.log('Error getting document', err)
+      })
+  )
   if (transferName !== '') {
-    await jobRef.set(
-      {
-        transferName
-      },
-      { merge: true }
+    await to(
+      jobRef.set(
+        {
+          transferName,
+          status: 'IN_PROGRESS'
+        },
+        { merge: true }
+      )
     )
   }
 }
@@ -114,6 +118,8 @@ async function createBucket(bucketName) {
  */
 async function createJob(jobId, transferSpec) {
   const authClient = await authorize()
+  const bucketName = 'forensicloud-' + jobId
+  await createBucket(bucketName).catch(console.error)
   const date = new Date()
   const request = {
     resource: {

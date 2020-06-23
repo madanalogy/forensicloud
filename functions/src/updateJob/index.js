@@ -1,20 +1,43 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
+import { to } from 'utils/async'
 
 /**
  * Updates a cloud service job.
- * @param {functions.Event} event - PubSub event from function trigger
+ * @param {functions.Event} message - PubSub event from function trigger. See:
+ * https://cloud.google.com/storage-transfer/docs/reference/rest/v1/NotificationConfig
  * @param {functions.EventContext} context - Function context. More info in docs:
  * https://firebase.google.com/docs/reference/functions/cloud_functions_.eventcontext
  * https://cloud.google.com/functions/docs/writing/background#function_parameters
  * @returns {Promise} Resolves with user's profile
  */
-async function updateJob(event, context) {
-  const payload = event.data ? Buffer.from(event.data, 'base64').toString() : ''
-  if (payload === '') return
-  const data = payload.split(';')
-  const jobId = admin.firestore().collection('jobs').doc(data[0])
-  console.log(jobId)
+async function updateJob(message, context) {
+  const data = message.data
+    ? JSON.parse(Buffer.from(message.data, 'base64').toString())
+    : {}
+  if (data === {}) {
+    console.log('Empty payload')
+    return
+  }
+  const jobRef = admin
+    .firestore()
+    .collection('jobs')
+    .where('transferName', '==', data.transferJobName)
+    .limit(1)
+
+  await to(
+    jobRef.set(
+      {
+        status: data.status,
+        endTime: data.endTime
+      },
+      { merge: true }
+    )
+  )
+
+  if (data.status === 'FAILED') {
+    console.log(JSON.stringify(data.errorBreakdowns))
+  }
 }
 
 /**
