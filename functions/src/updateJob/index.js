@@ -26,13 +26,10 @@ async function updateJob(message, context) {
     .limit(1)
 
   await to(
-    jobRef.set(
-      {
-        status: data.status,
-        endTime: data.endTime
-      },
-      { merge: true }
-    )
+    jobRef.update({
+      status: data.status,
+      endTime: data.endTime
+    })
   )
 
   if (data.status === 'FAILED') {

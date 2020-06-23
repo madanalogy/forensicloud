@@ -39,7 +39,7 @@ async function startJob(change, context) {
                 }
               },
               gcsDataSink: {
-                bucketName
+                bucketName: bucketName
               }
             }
           } else if (doc.get('source') === 'azure') {
@@ -52,7 +52,7 @@ async function startJob(change, context) {
                 container: doc.get('awsIdAzureCon')
               },
               gcsDataSink: {
-                bucketName
+                bucketName: bucketName
               }
             }
           } else if (doc.get('source') === 'gcloud') {
@@ -61,7 +61,7 @@ async function startJob(change, context) {
                 bucketName: doc.get('sourceName')
               },
               gcsDataSink: {
-                bucketName
+                bucketName: bucketName
               }
             }
           } else {
@@ -80,13 +80,10 @@ async function startJob(change, context) {
   )
   if (transferName !== '') {
     await to(
-      jobRef.set(
-        {
-          transferName,
-          status: 'IN_PROGRESS'
-        },
-        { merge: true }
-      )
+      jobRef.update({
+        transferName: transferName,
+        status: 'IN_PROGRESS'
+      })
     )
   }
 }
@@ -146,7 +143,7 @@ async function createJob(jobId, transferSpec) {
           minutes: date.getMinutes()
         }
       },
-      transferSpec
+      transferSpec: transferSpec
     },
     auth: authClient
   }
