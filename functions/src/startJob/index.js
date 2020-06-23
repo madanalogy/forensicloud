@@ -19,7 +19,7 @@ const storage = new Storage()
 async function startJob(change, context) {
   const { jobId } = context.params || {}
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
-  const bucketName = 'forensicloud-' + jobId
+  const bucketName = `forensicloud-${jobId}`
   let transferSpec = {}
   let transferName = ''
   await to(
@@ -129,7 +129,7 @@ async function createBucket(bucketName) {
  */
 async function createJob(jobId, transferSpec) {
   const authClient = await authorize()
-  const bucketName = 'forensicloud-' + jobId
+  const bucketName = `forensicloud-${jobId}`
   if (await createBucket(bucketName)) return ''
   const date = new Date()
   const request = {
