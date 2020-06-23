@@ -62,6 +62,12 @@ async function startJob(change, context) {
               },
               gcsDataSink: {
                 bucketName: bucketName
+              },
+              objectConditions: {
+                minTimeElapsedSinceLastModification: '2592000s'
+              },
+              transferOptions: {
+                deleteObjectsFromSourceAfterTransfer: false
               }
             }
           } else {
