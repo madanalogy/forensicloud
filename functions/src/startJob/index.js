@@ -136,7 +136,7 @@ async function addBucketIamMember(bucketName) {
   policy.bindings.push({
     role: 'roles/storage.legacyBucketWriter',
     members: [
-      'project-346890162255@storage-transfer-service.iam.gserviceaccount.com'
+      'serviceAccount:project-346890162255@storage-transfer-service.iam.gserviceaccount.com'
     ]
   })
 
