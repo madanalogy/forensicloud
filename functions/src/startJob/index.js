@@ -148,6 +148,7 @@ async function createJob(jobId, transferSpec, bucketName) {
   const request = {
     resource: {
       name: `transferJobs/${jobId}`,
+      description: jobId,
       status: 'ENABLED',
       projectId: projectId,
       notificationConfig: {
