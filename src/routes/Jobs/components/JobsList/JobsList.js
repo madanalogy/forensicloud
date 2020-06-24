@@ -37,9 +37,8 @@ function useJobsList() {
         ...newInstance,
         createdBy: auth.uid,
         createdAt: FieldValue.serverTimestamp(),
-        endTime: FieldValue.serverTimestamp(),
-        jobName: '',
-        status: 'CREATED'
+        completedAt: null,
+        status: 'IN_PROGRESS'
       })
       .then(() => {
         toggleDialog()

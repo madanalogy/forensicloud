@@ -1,6 +1,5 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { to } from 'utils/async'
 
 const { google } = require('googleapis')
 const { Storage } = require('@google-cloud/storage')
@@ -23,7 +22,6 @@ async function startJob(change, context) {
   const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
   const bucketName = `${projectId}-${hash}`
   let transferSpec = {}
-  let transferName = ''
   await jobRef
     .get()
     .then((doc) => {
@@ -84,15 +82,7 @@ async function startJob(change, context) {
       console.error('Error getting document', err)
     })
   if (transferSpec !== {}) {
-    transferName = await createJob(jobId, transferSpec, bucketName)
-    if (transferName !== '') {
-      await to(
-        jobRef.update({
-          jobName: transferName,
-          status: 'IN_PROGRESS'
-        })
-      )
-    }
+    await createJob(jobId, transferSpec, bucketName).catch(console.error)
   }
 }
 
@@ -157,7 +147,7 @@ async function createJob(jobId, transferSpec, bucketName) {
   const date = new Date()
   const request = {
     resource: {
-      description: jobId,
+      name: `transferJobs/${jobId}`,
       status: 'ENABLED',
       projectId: projectId,
       notificationConfig: {
@@ -187,10 +177,9 @@ async function createJob(jobId, transferSpec, bucketName) {
 
   try {
     const response = (await storagetransfer.transferJobs.create(request)).data
-    return response.transferJob.name
+    console.log(JSON.stringify(response, null, 2))
   } catch (err) {
     console.error(err)
-    return ''
   }
 }
 

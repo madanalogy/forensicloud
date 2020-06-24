@@ -1,6 +1,5 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { to } from 'utils/async'
 
 /**
  * Updates a cloud service job.
@@ -19,18 +18,15 @@ async function updateJob(message, context) {
     console.log('Empty payload')
     return
   }
-  const jobRef = admin
-    .firestore()
-    .collection('jobs')
-    .where('jobName', '==', data.transferJobName)
-    .limit(1)
+  const jobId = data.transferJobName.split('/')
+  const jobRef = admin.firestore().collection('jobs').doc(jobId[1])
 
-  await to(
-    jobRef.update({
+  await jobRef
+    .update({
       status: data.status,
-      endTime: data.endTime
+      completedAt: data.endTime
     })
-  )
+    .catch(console.error)
 
   if (data.status === 'FAILED') {
     console.error(JSON.stringify(data.errorBreakdowns))
