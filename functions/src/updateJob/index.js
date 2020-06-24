@@ -22,7 +22,7 @@ async function updateJob(message, context) {
   const jobRef = admin
     .firestore()
     .collection('jobs')
-    .where('transferName', '==', data.transferJobName)
+    .where('jobName', '==', data.transferJobName)
     .limit(1)
 
   await to(
@@ -33,7 +33,7 @@ async function updateJob(message, context) {
   )
 
   if (data.status === 'FAILED') {
-    console.log(JSON.stringify(data.errorBreakdowns))
+    console.error(JSON.stringify(data.errorBreakdowns))
   }
 }
 

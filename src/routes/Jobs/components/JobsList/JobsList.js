@@ -38,8 +38,8 @@ function useJobsList() {
         createdBy: auth.uid,
         createdAt: FieldValue.serverTimestamp(),
         endTime: FieldValue.serverTimestamp(),
-        transferName: '',
-        status: ''
+        jobName: '',
+        status: 'CREATED'
       })
       .then(() => {
         toggleDialog()

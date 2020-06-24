@@ -6,6 +6,7 @@ const { google } = require('googleapis')
 const { Storage } = require('@google-cloud/storage')
 const storagetransfer = google.storagetransfer('v1')
 const storage = new Storage()
+const projectId = 'forensicloud'
 
 /**
  * Starts a cloud service job.
@@ -20,76 +21,74 @@ async function startJob(change, context) {
   const { jobId } = context.params || {}
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
   const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
-  const bucketName = `forensicloud-${hash}`
+  const bucketName = `${projectId}-${hash}`
   let transferSpec = {}
   let transferName = ''
-  await to(
-    jobRef
-      .get()
-      .then((doc) => {
-        if (!doc.exists) {
-          console.log('No such document!')
-        } else if (doc.get('type') === 'transfer') {
-          if (doc.get('source') === 'aws') {
-            transferSpec = {
-              awsS3DataSource: {
-                bucketName: doc.get('sourceName'),
-                awsAccessKey: {
-                  accessKeyId: doc.get('awsIdAzureCon'),
-                  secretAccessKey: doc.get('accessKey')
-                }
-              },
-              gcsDataSink: {
-                bucketName: bucketName
+  await jobRef
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        console.error('No such document!')
+      } else if (doc.get('type') === 'transfer') {
+        if (doc.get('source') === 'aws') {
+          transferSpec = {
+            awsS3DataSource: {
+              bucketName: doc.get('sourceName'),
+              awsAccessKey: {
+                accessKeyId: doc.get('awsIdAzureCon'),
+                secretAccessKey: doc.get('accessKey')
               }
+            },
+            gcsDataSink: {
+              bucketName: bucketName
             }
-          } else if (doc.get('source') === 'azure') {
-            transferSpec = {
-              azureBlobStorageDataSource: {
-                storageAccount: doc.get('sourceName'),
-                azureCredentials: {
-                  sasToken: doc.get('accessKey')
-                },
-                container: doc.get('awsIdAzureCon')
-              },
-              gcsDataSink: {
-                bucketName: bucketName
-              }
-            }
-          } else if (doc.get('source') === 'gcloud') {
-            transferSpec = {
-              gcsDataSource: {
-                bucketName: doc.get('sourceName')
-              },
-              gcsDataSink: {
-                bucketName: bucketName
-              },
-              objectConditions: {
-                minTimeElapsedSinceLastModification: '2592000s'
-              },
-              transferOptions: {
-                deleteObjectsFromSourceAfterTransfer: false
-              }
-            }
-          } else {
-            console.log('No such source!')
           }
-        } else if (doc.get('type') === 'takeout') {
-          // TODO: Implement takeout
+        } else if (doc.get('source') === 'azure') {
+          transferSpec = {
+            azureBlobStorageDataSource: {
+              storageAccount: doc.get('sourceName'),
+              azureCredentials: {
+                sasToken: doc.get('accessKey')
+              },
+              container: doc.get('awsIdAzureCon')
+            },
+            gcsDataSink: {
+              bucketName: bucketName
+            }
+          }
+        } else if (doc.get('source') === 'gcloud') {
+          transferSpec = {
+            gcsDataSource: {
+              bucketName: doc.get('sourceName')
+            },
+            gcsDataSink: {
+              bucketName: bucketName
+            },
+            objectConditions: {
+              minTimeElapsedSinceLastModification: '2592000s'
+            },
+            transferOptions: {
+              deleteObjectsFromSourceAfterTransfer: false
+            }
+          }
         } else {
-          console.log('Invalid type parameter')
+          console.error('No such source!')
         }
-      })
-      .catch((err) => {
-        console.log('Error getting document', err)
-      })
-  )
+      } else if (doc.get('type') === 'takeout') {
+        // TODO: Implement takeout
+      } else {
+        console.error('Invalid type parameter')
+      }
+    })
+    .catch((err) => {
+      console.error('Error getting document', err)
+    })
   if (transferSpec !== {}) {
     transferName = await createJob(jobId, transferSpec, bucketName)
     if (transferName !== '') {
       await to(
         jobRef.update({
-          transferName: transferName,
+          jobName: transferName,
           status: 'IN_PROGRESS'
         })
       )
@@ -110,16 +109,39 @@ async function createBucket(bucketName) {
   // https://cloud.google.com/storage/docs/storage-classes
 
   try {
-    const [bucket] = await storage.createBucket(bucketName, {
+    await storage.createBucket(bucketName, {
       location: 'ASIA',
       storageClass: 'STANDARD'
     })
-    console.log(`Bucket ${bucket.name} created.`)
-    return false
+    await addBucketIamMember(bucketName)
+    return true
   } catch (err) {
     console.error(err)
-    return true
+    return false
   }
+}
+
+/**
+ * Adds the necessary IAM roles for the new bucket.
+ * @param {string} bucketName Name of bucket
+ */
+async function addBucketIamMember(bucketName) {
+  // Get a reference to a Google Cloud Storage bucket
+  const bucket = storage.bucket(bucketName)
+
+  // Gets and updates the bucket's IAM policy
+  const [policy] = await bucket.iam.getPolicy({ requestedPolicyVersion: 3 })
+
+  // Adds the new roles to the bucket's IAM policy
+  policy.bindings.push({
+    role: 'roles/storage.legacyBucketWriter',
+    members: [
+      'project-346890162255@storage-transfer-service.iam.gserviceaccount.com'
+    ]
+  })
+
+  // Updates the bucket's IAM policy
+  await bucket.iam.setPolicy(policy)
 }
 
 /**
@@ -131,15 +153,15 @@ async function createBucket(bucketName) {
  */
 async function createJob(jobId, transferSpec, bucketName) {
   const authClient = await authorize()
-  if (await createBucket(bucketName)) return ''
+  if (!(await createBucket(bucketName))) return ''
   const date = new Date()
   const request = {
     resource: {
       description: jobId,
       status: 'ENABLED',
-      projectId: 'forensicloud',
+      projectId: projectId,
       notificationConfig: {
-        pubsubTopic: 'projects/forensicloud/topics/jobs',
+        pubsubTopic: `projects/${projectId}/topics/jobs`,
         payloadFormat: 'JSON'
       },
       schedule: {
