@@ -13,7 +13,7 @@ import styles from './JobTile.styles'
 
 const useStyles = makeStyles(styles)
 
-function JobTile({ name, jobId, showDelete }) {
+function JobTile({ name, jobId, showDelete, status }) {
   const classes = useStyles()
   const history = useHistory()
   const { showError, showSuccess } = useNotifications()
@@ -49,6 +49,10 @@ function JobTile({ name, jobId, showDelete }) {
           </Tooltip>
         ) : null}
       </div>
+      <br />
+      <span className={classes.name} onClick={goToJob}>
+        Status: {status || 'UNKNOWN'}
+      </span>
     </Paper>
   )
 }
@@ -56,7 +60,8 @@ function JobTile({ name, jobId, showDelete }) {
 JobTile.propTypes = {
   jobId: PropTypes.string.isRequired,
   showDelete: PropTypes.bool,
-  name: PropTypes.string
+  name: PropTypes.string,
+  status: PropTypes.string
 }
 
 JobTile.defaultProps = {

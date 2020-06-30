@@ -39,6 +39,10 @@ async function startJob(change, context) {
             },
             gcsDataSink: {
               bucketName: bucketName
+            },
+            transferOptions: {
+              overwriteObjectsAlreadyExistingInSink: true,
+              deleteObjectsFromSourceAfterTransfer: false
             }
           }
         } else if (doc.get('source') === 'azure') {
@@ -52,6 +56,10 @@ async function startJob(change, context) {
             },
             gcsDataSink: {
               bucketName: bucketName
+            },
+            transferOptions: {
+              overwriteObjectsAlreadyExistingInSink: true,
+              deleteObjectsFromSourceAfterTransfer: false
             }
           }
         } else if (doc.get('source') === 'gcloud') {
@@ -62,10 +70,8 @@ async function startJob(change, context) {
             gcsDataSink: {
               bucketName: bucketName
             },
-            objectConditions: {
-              minTimeElapsedSinceLastModification: '2592000s'
-            },
             transferOptions: {
+              overwriteObjectsAlreadyExistingInSink: true,
               deleteObjectsFromSourceAfterTransfer: false
             }
           }
@@ -137,7 +143,8 @@ async function addBucketIamMember(bucketName) {
 /**
  * Creates the transfer job.
  * @param {string} jobId - jobId data
- * @param {any} transferSpec - Transfer Job Spec
+ * @param {any} transferSpec - Transfer Job Spec. See:
+ * https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec
  * @param {string} bucketName - Name of the bucket
  * @returns {string} Name of the transfer
  */
@@ -177,8 +184,7 @@ async function createJob(jobId, transferSpec, bucketName) {
   }
 
   try {
-    const response = (await storagetransfer.transferJobs.create(request)).data
-    console.log(JSON.stringify(response, null, 2))
+    await storagetransfer.transferJobs.create(request)
   } catch (err) {
     console.error(err)
   }
