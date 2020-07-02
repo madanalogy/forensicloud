@@ -12,13 +12,59 @@ function JobData() {
 
   const jobSnap = useFirestoreDoc(jobRef)
   const job = jobSnap.data()
+  const createdAt =
+    job && job.createdAt ? new Date(job.createdAt.seconds * 1000) : 'error'
+  const completedAt =
+    job && job.completedAt
+      ? new Date(job.completedAt.seconds * 1000)
+      : 'In Progress'
 
   return (
     <CardContent>
-      <Typography component="h2">{(job && job.name) || 'Job'}</Typography>
-      <Typography>{jobId}</Typography>
+      <Typography component="h1">{(job && job.name) || 'Job'}</Typography>
+      <Typography component="h2">
+        {(job && job.type.toUpperCase()) || 'Type'}
+      </Typography>
       <div style={{ marginTop: '4rem' }}>
-        <pre>{JSON.stringify(job, null, 2)}</pre>
+        <table>
+          <tr>
+            <td>
+              <b>Source Details</b>
+            </td>
+            <td>
+              Type: {job && job.source.toUpperCase()} <br />
+              Name: {job && job.sourceName.toUpperCase()}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <b>Status</b>
+            </td>
+            <td>{job && job.status.toUpperCase()}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>Timestamps (UTC)</b>
+            </td>
+            <td>
+              Created: {createdAt} <br />
+              Completed: {completedAt}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <b>Access URL</b>
+            </td>
+            <td>
+              <a
+                href={(job && job.accessUrl) || '#'}
+                target="_blank"
+                rel="noopener noreferrer">
+                {(job && job.accessUrl) || 'Not Available'}
+              </a>
+            </td>
+          </tr>
+        </table>
       </div>
     </CardContent>
   )
