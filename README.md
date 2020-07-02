@@ -13,9 +13,8 @@
 1. [Application Structure](#application-structure)
 1. [Routing](#routing)
 1. [Testing](#testing)
-1. [Configuration](#configuration)
-1. [Production](#production)
 1. [Deployment](#deployment)
+1. [FAQ](#faq)
 
 ## Requirements
 

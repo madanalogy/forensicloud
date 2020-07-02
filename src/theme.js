@@ -13,6 +13,11 @@ export default {
     flexDirection: 'column',
     alignItems: 'center'
   },
+  flexColumnLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'left'
+  },
   flexRowCenter: {
     display: 'flex',
     flexDirection: 'row',

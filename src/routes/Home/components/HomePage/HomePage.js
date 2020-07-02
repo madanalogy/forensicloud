@@ -4,16 +4,13 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Paper from '@material-ui/core/Paper'
 import Grid from '@material-ui/core/Grid'
-import {
-  ACCOUNT_PATH,
-  LIST_PATH,
-  LOGIN_PATH,
-  SIGNUP_PATH
-} from 'constants/paths'
+import GitHubIcon from '@material-ui/icons/GitHub'
+import { LIST_PATH, LOGIN_PATH, SIGNUP_PATH } from 'constants/paths'
 import styles from './HomePage.styles'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
 
-const reactRouterUrl = 'https://github.com/ReactTraining/react-router'
-const reactfireUrl = 'https://github.com/FirebaseExtended/reactfire'
+const github = 'https://github.com/madanalogy/ForensiCloud'
 
 const useStyles = makeStyles(styles)
 
@@ -23,90 +20,77 @@ function Home() {
   return (
     <div className={classes.root}>
       <Typography variant="h3" component="h3" gutterBottom>
-        Home Page
+        Cloud Services for Digital Forensics
       </Typography>
       <Paper>
         <Grid container justify="center">
-          <Grid item xs className={classes.section}>
+          <Grid item sm className={classes.section}>
             <Typography variant="h6" gutterBottom>
-              Routing
+              Transfer
             </Typography>
             <Typography variant="subtitle1" gutterBottom>
-              Redirecting and route protection done using:
+              Transfer data from cloud storage services. Supported providers:
             </Typography>
-            <div>
-              <span>
-                <a
-                  href={reactRouterUrl}
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  react-router
-                </a>
-              </span>
-              <span> and </span>
-              <pre>
-                <a
-                  href={`${reactfireUrl}/blob/master/docs/reference.md#AuthCheck`}
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  AuthCheck
-                </a>
-              </pre>
-              from
-              <a href={reactfireUrl} target="_blank" rel="noopener noreferrer">
-                reactfire
-              </a>
-            </div>
+            <List>
+              <ListItem>Google Cloud</ListItem>
+              <ListItem>Amazon Web Services</ListItem>
+              <ListItem>Microsoft Azure</ListItem>
+            </List>
           </Grid>
-          <Grid item xs className={classes.section}>
+          <Grid item sm className={classes.section}>
             <Typography variant="h6" gutterBottom>
-              Auth
+              Takeout
             </Typography>
             <Typography variant="subtitle1" gutterBottom>
-              User is redirected to <pre>/login</pre> if not authenticated and
-              trying to vist:
+              Coming soon: Download data from a Google account. Supported
+              content:
             </Typography>
-            <ul>
-              <li>
-                <Link to={LIST_PATH}>Jobs</Link>
-              </li>
-              <li>
-                <Link to={ACCOUNT_PATH}>Account</Link>
-              </li>
-            </ul>
+            <List>
+              <ListItem>Google Drive</ListItem>
+              <ListItem>Google Mail</ListItem>
+            </List>
           </Grid>
-          <Grid item xs className={classes.section}>
+          <Grid item sm className={classes.section}>
             <Typography variant="h6" gutterBottom>
-              Forms
+              Analytics
             </Typography>
             <Typography variant="subtitle1" gutterBottom>
-              Input validation and context management
+              Coming soon: Automatic analysis of data with the latest in Google
+              AI services. Supported insights:
             </Typography>
-            <div>
-              <span>
-                <a
-                  href="https://react-hook-form.com/"
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  react-hook-form
-                </a>
-              </span>
-            </div>
-            <span>The following routes use react-hook-form:</span>
-            <ul>
-              <li>
+            <List>
+              <ListItem>Entity Sentiment Analysis</ListItem>
+              <ListItem>Image OCR & Explicit Content</ListItem>
+              <ListItem>Video Intelligence</ListItem>
+            </List>
+          </Grid>
+          <Grid item sm className={classes.section}>
+            <Typography variant="h6" gutterBottom>
+              Get Started
+            </Typography>
+            <Typography variant="subtitle1" gutterBottom>
+              You will need to sign up to begin using ForensiCloud. Currently
+              supported account types: Email & Google
+            </Typography>
+            <List>
+              <ListItem>
                 <Link to={LOGIN_PATH}>Login</Link>
-              </li>
-              <li>
-                <Link to={SIGNUP_PATH}>Signup</Link>
-              </li>
-              <li>
-                <Link to={ACCOUNT_PATH}>Account</Link>
-              </li>
-            </ul>
+              </ListItem>
+              <ListItem>
+                <Link to={SIGNUP_PATH}>Sign Up</Link>
+              </ListItem>
+              <ListItem>
+                <Link to={LIST_PATH}>Manage Jobs</Link>
+              </ListItem>
+            </List>
           </Grid>
         </Grid>
       </Paper>
+      <Typography variant="h3" component="h3" gutterBottom>
+        <a href={github} target="_blank" rel="noopener noreferrer">
+          <GitHubIcon />
+        </a>
+      </Typography>
     </div>
   )
 }
