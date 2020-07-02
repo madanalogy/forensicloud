@@ -1,11 +1,24 @@
 import React from 'react'
 import CardContent from '@material-ui/core/CardContent'
 import Typography from '@material-ui/core/Typography'
+import Table from '@material-ui/core/Table'
+import TableBody from '@material-ui/core/TableBody'
+import TableCell from '@material-ui/core/TableCell'
+import TableRow from '@material-ui/core/TableRow'
 import { useParams } from 'react-router-dom'
 import { useFirestoreDoc, useFirestore } from 'reactfire'
 import { JOBS_COLLECTION } from 'constants/firebasePaths'
+import { makeStyles } from '@material-ui/core/styles'
+import styles from './JobData.styles'
+
+const useStyles = makeStyles(styles)
+
+function createData(label, data) {
+  return { label, data }
+}
 
 function JobData() {
+  const classes = useStyles()
   const { jobId } = useParams()
   const firestore = useFirestore()
   const jobRef = firestore.doc(`${JOBS_COLLECTION}/${jobId}`)
@@ -13,59 +26,60 @@ function JobData() {
   const jobSnap = useFirestoreDoc(jobRef)
   const job = jobSnap.data()
   const createdAt =
-    job && job.createdAt ? new Date(job.createdAt.seconds * 1000) : 'error'
+    job && job.createdAt
+      ? new Date(job.createdAt.seconds * 1000).toDateString()
+      : 'error'
   const completedAt =
     job && job.completedAt
-      ? new Date(job.completedAt.seconds * 1000)
+      ? new Date(job.completedAt.seconds * 1000).toDateString()
       : 'In Progress'
+
+  const rows = [
+    createData(
+      'Source Details',
+      'Type: '
+        .concat(job && job.source.toUpperCase())
+        .concat(', Name: ')
+        .concat(job && job.sourceName.toUpperCase())
+    ),
+    createData('Status', job && job.status.toUpperCase()),
+    createData(
+      'Timestamps (UTC)',
+      'Created At: '
+        .concat(createdAt)
+        .concat(', Completed On: ')
+        .concat(completedAt)
+    )
+  ]
 
   return (
     <CardContent>
-      <Typography component="h1">{(job && job.name) || 'Job'}</Typography>
-      <Typography component="h2">
-        {(job && job.type.toUpperCase()) || 'Type'}
+      <Typography component="h2">{(job && job.name) || 'Job'}</Typography>
+      <Typography component="h3">
+        Job Type: {(job && job.type.toUpperCase()) || 'Unknown'}
       </Typography>
-      <div style={{ marginTop: '4rem' }}>
-        <table>
-          <tr>
-            <td>
-              <b>Source Details</b>
-            </td>
-            <td>
-              Type: {job && job.source.toUpperCase()} <br />
-              Name: {job && job.sourceName.toUpperCase()}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>Status</b>
-            </td>
-            <td>{job && job.status.toUpperCase()}</td>
-          </tr>
-          <tr>
-            <td>
-              <b>Timestamps (UTC)</b>
-            </td>
-            <td>
-              Created: {createdAt} <br />
-              Completed: {completedAt}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>Access URL</b>
-            </td>
-            <td>
-              <a
-                href={(job && job.accessUrl) || '#'}
-                target="_blank"
-                rel="noopener noreferrer">
+      <Table className={classes.table} aria-label="simple table">
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.label}>
+              <TableCell component="th" scope="row">
+                {row.label}
+              </TableCell>
+              <TableCell align="left">{row.data}</TableCell>
+            </TableRow>
+          ))}
+          <TableRow>
+            <TableCell component="th" scope="row">
+              Access URL
+            </TableCell>
+            <TableCell align="left">
+              <a href={(job && job.accessUrl) || '#'}>
                 {(job && job.accessUrl) || 'Not Available'}
               </a>
-            </td>
-          </tr>
-        </table>
-      </div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </CardContent>
   )
 }
