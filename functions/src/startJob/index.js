@@ -172,10 +172,6 @@ async function createJob(jobId, transferSpec, bucketName) {
           day: date.getDate(),
           month: date.getMonth(),
           year: date.getFullYear()
-        },
-        startTimeOfDay: {
-          hours: date.getHours(),
-          minutes: date.getMinutes()
         }
       },
       transferSpec: transferSpec
