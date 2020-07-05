@@ -26,15 +26,13 @@ async function updateJob(message, context) {
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
   const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
   const bucketName = `${projectId}-${hash}`
-  const bucketUrl = await generateV4ReadSignedUrl(bucketName).catch(
-    console.error
-  )
+  const bucketUrl = await generateSignedUrl(bucketName).catch(console.error)
 
   await jobRef
     .update({
       status: data.status,
       completedAt: data.endTime,
-      accessUrl: bucketUrl
+      accessUrl: bucketUrl || ''
     })
     .catch(console.error)
 
@@ -44,18 +42,18 @@ async function updateJob(message, context) {
 }
 
 /**
- * Generates the v4 signed url for the bucket.
+ * Generates the signed url for the bucket.
  * @param {string} bucketName - The name of the bucket to give access to
  * @returns {Promise<string>} - The signed URL for access
  */
-async function generateV4ReadSignedUrl(bucketName) {
+async function generateSignedUrl(bucketName) {
   const options = {
-    version: 'v4',
+    version: 'v2',
     action: 'list',
-    expires: Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 days
+    expires: Date.now() + 1000 * 604800 // 7 days
   }
 
-  // Get a v4 signed URL for reading the bucket
+  // Get a signed URL for reading the bucket
   const [url] = await storage.bucket(bucketName).getSignedUrl(options)
 
   return url
