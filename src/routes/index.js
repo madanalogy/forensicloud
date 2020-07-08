@@ -2,7 +2,7 @@ import React from 'react'
 import { Switch, Route } from 'react-router-dom'
 import { SuspenseWithPerf } from 'reactfire'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { PrivateRoute } from '../utils/router'
+import { PrivateRoute } from 'utils/router'
 import SetupAnalytics from '../components/SetupAnalytics'
 import CoreLayout from '../layouts/CoreLayout'
 import Home from './Home'
@@ -11,6 +11,7 @@ import SignupRoute from './Signup'
 import JobsRoute from './Jobs'
 import AccountRoute from './Account'
 import NotFoundRoute from './NotFound'
+import PrivacyRoute from './Privacy'
 
 export default function createRoutes() {
   return (
@@ -25,7 +26,8 @@ export default function createRoutes() {
               AccountRoute,
               JobsRoute,
               SignupRoute,
-              LoginRoute
+              LoginRoute,
+              PrivacyRoute
               /* Add More Routes Here */
             ].map((settings) =>
               settings.authRequired ? (
@@ -36,7 +38,7 @@ export default function createRoutes() {
             )
           }
           <Route component={NotFoundRoute.component} />
-          <SuspenseWithPerf traceId="analytics-setup">
+          <SuspenseWithPerf traceId="analytics-setup" fallback="">
             <SetupAnalytics />
           </SuspenseWithPerf>
         </Switch>
