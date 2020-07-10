@@ -5,12 +5,7 @@ import Typography from '@material-ui/core/Typography'
 import Paper from '@material-ui/core/Paper'
 import Grid from '@material-ui/core/Grid'
 import GitHubIcon from '@material-ui/icons/GitHub'
-import {
-  LIST_PATH,
-  LOGIN_PATH,
-  SIGNUP_PATH,
-  PRIVACY_PATH
-} from 'constants/paths'
+import { LIST_PATH, LOGIN_PATH, SIGNUP_PATH } from 'constants/paths'
 import styles from './HomePage.styles'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
@@ -96,9 +91,9 @@ function Home() {
           <GitHubIcon />
         </a>
       </Typography>
-      <Typography variant="subtitle1" gutterBottom>
+      {/* <Typography variant="subtitle1">
         <Link to={PRIVACY_PATH}>Privacy Policy</Link>
-      </Typography>
+      </Typography> */}
     </div>
   )
 }
