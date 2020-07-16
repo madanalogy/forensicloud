@@ -41,6 +41,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             inputRef={register({
               required: true
             })}
+            autoFocus
             margin="normal"
             fullWidth
           />
@@ -51,7 +52,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             as={
               <Select>
                 <MenuItem value="transfer">Storage Transfer</MenuItem>
-                <MenuItem value="takeout">Google Takeout</MenuItem>
+                <MenuItem value="takeout">Drive Takeout</MenuItem>
               </Select>
             }
             name="type"
@@ -75,6 +76,25 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               rules={{ required: 'Source is required' }}
               control={control}
               defaultValue="gcloud"
+            />
+          )}
+          {type === 'takeout' && (
+            <Controller
+              as={
+                <Select>
+                  <MenuItem value="dropbox">Dropbox</MenuItem>
+                  <MenuItem value="gdrive" disabled>
+                    Google Drive
+                  </MenuItem>
+                  <MenuItem value="odrive" disabled>
+                    One Drive
+                  </MenuItem>
+                </Select>
+              }
+              name="drive"
+              rules={{ required: 'Source is required' }}
+              control={control}
+              defaultValue="dropbox"
             />
           )}
           <br />

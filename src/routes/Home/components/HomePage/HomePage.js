@@ -29,7 +29,7 @@ function Home() {
               Transfer
             </Typography>
             <Typography variant="subtitle1" gutterBottom>
-              Transfer data from cloud storage services. Supported providers:
+              Transfer data from cloud storage providers. Supported providers:
             </Typography>
             <List>
               <ListItem>Google Cloud</ListItem>
@@ -42,12 +42,12 @@ function Home() {
               Takeout
             </Typography>
             <Typography variant="subtitle1" gutterBottom>
-              Coming soon: Download data from a Google account. Supported
-              content:
+              Download data from a cloud storage service. Supported services:
             </Typography>
             <List>
-              <ListItem>Google Drive</ListItem>
-              <ListItem>Google Mail</ListItem>
+              <ListItem>Dropbox</ListItem>
+              <ListItem>(Coming Soon) Google Drive</ListItem>
+              <ListItem>(Coming Soon) One Drive</ListItem>
             </List>
           </Grid>
           <Grid item sm className={classes.section}>
