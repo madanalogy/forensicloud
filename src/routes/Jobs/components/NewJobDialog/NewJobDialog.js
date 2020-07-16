@@ -11,6 +11,8 @@ import DialogContent from '@material-ui/core/DialogContent'
 import styles from './NewJobDialog.styles'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
+import DropboxChooser from 'react-dropbox-chooser'
+import CloudUploadIcon from '@material-ui/icons/CloudUpload'
 
 const useStyles = makeStyles(styles)
 
@@ -22,6 +24,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
     errors,
     control,
     watch,
+    setValue,
     formState: { isSubmitting, isValid }
   } = useForm({ mode: 'onChange' })
 
@@ -33,20 +36,6 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
       <DialogTitle id="new-job-dialog-title">New Job</DialogTitle>
       <form className={classes.root} onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
-          <TextField
-            error={!!errors.name}
-            helperText={errors.name && 'Name is required'}
-            name="name"
-            label="Job Name"
-            inputRef={register({
-              required: true
-            })}
-            autoFocus
-            margin="normal"
-            fullWidth
-          />
-          <br />
-          <br />
           <label htmlFor={Select}>Job Type: </label>
           <Controller
             as={
@@ -98,9 +87,6 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             />
           )}
           <br />
-          {
-            // TODO: Add Dropbox Button
-          }
           {type === 'transfer' && (
             <TextField
               error={!!errors.sourceName}
@@ -135,6 +121,27 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               fullWidth
             />
           )}
+          {source === 'dropbox' && (
+            <Controller
+              as={
+                <DropboxChooser
+                  appKey="7kka06lq8ldmf39"
+                  success={(files) => setValue('files', files)}
+                  multiselect
+                  linkType="direct">
+                  <Button
+                    variant="contained"
+                    color="default"
+                    className={classes.button}
+                    startIcon={<CloudUploadIcon />}>
+                    Choose from Dropbox
+                  </Button>
+                </DropboxChooser>
+              }
+              name="files"
+              control={control}
+            />
+          )}
           <br />
           {(source === 'aws' || source === 'azure') && (
             <TextField
@@ -152,6 +159,17 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               fullWidth
             />
           )}
+          <TextField
+            error={!!errors.name}
+            helperText={errors.name && 'Name is required'}
+            name="name"
+            label="Job Name"
+            inputRef={register({
+              required: true
+            })}
+            margin="normal"
+            fullWidth
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={onRequestClose} color="secondary">
