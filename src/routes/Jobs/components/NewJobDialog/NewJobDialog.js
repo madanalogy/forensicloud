@@ -91,13 +91,16 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
                   </MenuItem>
                 </Select>
               }
-              name="drive"
+              name="source"
               rules={{ required: 'Source is required' }}
               control={control}
               defaultValue="dropbox"
             />
           )}
           <br />
+          {
+            // TODO: Add Dropbox Button
+          }
           {type === 'transfer' && (
             <TextField
               error={!!errors.sourceName}

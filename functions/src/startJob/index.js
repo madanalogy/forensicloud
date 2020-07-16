@@ -27,61 +27,79 @@ async function startJob(change, context) {
     .then((doc) => {
       if (!doc.exists) {
         console.error('No such document!')
-      } else if (doc.get('type') === 'transfer') {
-        if (doc.get('source') === 'aws') {
-          transferSpec = {
-            awsS3DataSource: {
-              bucketName: doc.get('sourceName'),
-              awsAccessKey: {
-                accessKeyId: doc.get('awsIdAzureCon'),
-                secretAccessKey: doc.get('accessKey')
-              }
-            },
-            gcsDataSink: {
-              bucketName: bucketName
-            },
-            transferOptions: {
-              overwriteObjectsAlreadyExistingInSink: true,
-              deleteObjectsFromSourceAfterTransfer: false
+      } else if (
+        doc.get('type') === 'transfer' &&
+        doc.get('source') === 'aws'
+      ) {
+        transferSpec = {
+          awsS3DataSource: {
+            bucketName: doc.get('sourceName'),
+            awsAccessKey: {
+              accessKeyId: doc.get('awsIdAzureCon'),
+              secretAccessKey: doc.get('accessKey')
             }
+          },
+          gcsDataSink: {
+            bucketName: bucketName
+          },
+          transferOptions: {
+            overwriteObjectsAlreadyExistingInSink: true,
+            deleteObjectsFromSourceAfterTransfer: false
           }
-        } else if (doc.get('source') === 'azure') {
-          transferSpec = {
-            azureBlobStorageDataSource: {
-              storageAccount: doc.get('sourceName'),
-              azureCredentials: {
-                sasToken: doc.get('accessKey')
-              },
-              container: doc.get('awsIdAzureCon')
-            },
-            gcsDataSink: {
-              bucketName: bucketName
-            },
-            transferOptions: {
-              overwriteObjectsAlreadyExistingInSink: true,
-              deleteObjectsFromSourceAfterTransfer: false
-            }
-          }
-        } else if (doc.get('source') === 'gcloud') {
-          transferSpec = {
-            gcsDataSource: {
-              bucketName: doc.get('sourceName')
-            },
-            gcsDataSink: {
-              bucketName: bucketName
-            },
-            transferOptions: {
-              overwriteObjectsAlreadyExistingInSink: true,
-              deleteObjectsFromSourceAfterTransfer: false
-            }
-          }
-        } else {
-          console.error('No such source!')
         }
-      } else if (doc.get('type') === 'takeout') {
-        // TODO: Implement takeout
+      } else if (
+        doc.get('type') === 'transfer' &&
+        doc.get('source') === 'azure'
+      ) {
+        transferSpec = {
+          azureBlobStorageDataSource: {
+            storageAccount: doc.get('sourceName'),
+            azureCredentials: {
+              sasToken: doc.get('accessKey')
+            },
+            container: doc.get('awsIdAzureCon')
+          },
+          gcsDataSink: {
+            bucketName: bucketName
+          },
+          transferOptions: {
+            overwriteObjectsAlreadyExistingInSink: true,
+            deleteObjectsFromSourceAfterTransfer: false
+          }
+        }
+      } else if (
+        doc.get('type') === 'transfer' &&
+        doc.get('source') === 'gcloud'
+      ) {
+        transferSpec = {
+          gcsDataSource: {
+            bucketName: doc.get('sourceName')
+          },
+          gcsDataSink: {
+            bucketName: bucketName
+          },
+          transferOptions: {
+            overwriteObjectsAlreadyExistingInSink: true,
+            deleteObjectsFromSourceAfterTransfer: false
+          }
+        }
+      } else if (
+        doc.get('type') === 'takeout' &&
+        doc.get('source') === 'dropbox'
+      ) {
+        // TODO: Implement dropbox takeout
+      } else if (
+        doc.get('type') === 'takeout' &&
+        doc.get('source') === 'gdrive'
+      ) {
+        // TODO: Implement google drive takeout
+      } else if (
+        doc.get('type') === 'takeout' &&
+        doc.get('source') === 'odrive'
+      ) {
+        // TODO: Implement one drive takeout
       } else {
-        console.error('Invalid type parameter')
+        console.error('No such source!')
       }
     })
     .catch((err) => {
