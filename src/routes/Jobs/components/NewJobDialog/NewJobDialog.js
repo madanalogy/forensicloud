@@ -13,6 +13,7 @@ import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import DropboxChooser from 'react-dropbox-chooser'
 import CloudUploadIcon from '@material-ui/icons/CloudUpload'
+import List from '@material-ui/core/List'
 
 const useStyles = makeStyles(styles)
 
@@ -126,7 +127,14 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               as={
                 <DropboxChooser
                   appKey="7kka06lq8ldmf39"
-                  success={(files) => setValue('files', files)}
+                  success={(files) => {
+                    setValue('files', files)
+                    files.forEach((file) => {
+                      const li = document.createElement('li')
+                      li.textContent = file.name
+                      document.getElementById('fileList').appendChild(li)
+                    })
+                  }}
                   multiselect
                   linkType="direct">
                   <Button
@@ -143,6 +151,14 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             />
           )}
           <br />
+          {source === 'dropbox' && (
+            <Controller
+              as={<List label="Selected Files" />}
+              name="fileList"
+              id="fileList"
+              control={control}
+            />
+          )}
           {(source === 'aws' || source === 'azure') && (
             <TextField
               error={!!errors.awsIdAzureCon}
