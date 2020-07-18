@@ -39,7 +39,7 @@ function useJobsList() {
         createdAt: FieldValue.serverTimestamp(),
         completedAt: null,
         status: 'IN_PROGRESS',
-        accessUrl: ''
+        accessUrls: null
       })
       .then(() => {
         toggleDialog()

@@ -3,7 +3,7 @@ import * as functions from 'firebase-functions'
 
 const { google } = require('googleapis')
 const { Storage } = require('@google-cloud/storage')
-const storagetransfer = google.storagetransfer('v1')
+const storageTransfer = google.storagetransfer('v1')
 const storage = new Storage()
 const projectId = process.env.GCP_PROJECT
 
@@ -18,86 +18,18 @@ const projectId = process.env.GCP_PROJECT
  */
 async function startJob(change, context) {
   const { jobId } = context.params || {}
-  const jobRef = admin.firestore().collection('jobs').doc(jobId)
   const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
   const bucketName = `${projectId}-${hash}`
-  let transferSpec = {}
+  const jobRef = admin.firestore().collection('jobs').doc(jobId)
   await jobRef
     .get()
     .then((doc) => {
       if (!doc.exists) {
         console.error('No such document!')
-      } else if (
-        doc.get('type') === 'transfer' &&
-        doc.get('source') === 'aws'
-      ) {
-        transferSpec = {
-          awsS3DataSource: {
-            bucketName: doc.get('sourceName'),
-            awsAccessKey: {
-              accessKeyId: doc.get('awsIdAzureCon'),
-              secretAccessKey: doc.get('accessKey')
-            }
-          },
-          gcsDataSink: {
-            bucketName: bucketName
-          },
-          transferOptions: {
-            overwriteObjectsAlreadyExistingInSink: true,
-            deleteObjectsFromSourceAfterTransfer: false
-          }
-        }
-      } else if (
-        doc.get('type') === 'transfer' &&
-        doc.get('source') === 'azure'
-      ) {
-        transferSpec = {
-          azureBlobStorageDataSource: {
-            storageAccount: doc.get('sourceName'),
-            azureCredentials: {
-              sasToken: doc.get('accessKey')
-            },
-            container: doc.get('awsIdAzureCon')
-          },
-          gcsDataSink: {
-            bucketName: bucketName
-          },
-          transferOptions: {
-            overwriteObjectsAlreadyExistingInSink: true,
-            deleteObjectsFromSourceAfterTransfer: false
-          }
-        }
-      } else if (
-        doc.get('type') === 'transfer' &&
-        doc.get('source') === 'gcloud'
-      ) {
-        transferSpec = {
-          gcsDataSource: {
-            bucketName: doc.get('sourceName')
-          },
-          gcsDataSink: {
-            bucketName: bucketName
-          },
-          transferOptions: {
-            overwriteObjectsAlreadyExistingInSink: true,
-            deleteObjectsFromSourceAfterTransfer: false
-          }
-        }
-      } else if (
-        doc.get('type') === 'takeout' &&
-        doc.get('source') === 'dropbox'
-      ) {
-        // TODO: Implement dropbox takeout
-      } else if (
-        doc.get('type') === 'takeout' &&
-        doc.get('source') === 'gdrive'
-      ) {
-        // TODO: Implement google drive takeout
-      } else if (
-        doc.get('type') === 'takeout' &&
-        doc.get('source') === 'odrive'
-      ) {
-        // TODO: Implement one drive takeout
+      } else if (doc.get('type') === 'transfer') {
+        return executeTransfer(doc, jobId, bucketName)
+      } else if (doc.get('type') === 'takeout') {
+        return executeTakeout(doc, jobId, bucketName)
       } else {
         console.error('No such source!')
       }
@@ -105,9 +37,149 @@ async function startJob(change, context) {
     .catch((err) => {
       console.error('Error getting document', err)
     })
-  if (transferSpec !== {}) {
-    await createJob(jobId, transferSpec, bucketName).catch(console.error)
+}
+
+/**
+ * Creates a takeout job.
+ * @param {any} doc Document reference of a Job entity
+ * @param {string} jobId The ID of the job
+ * @param {string} bucketName The name of the bucket
+ * @returns {Promise<void>}
+ */
+async function executeTakeout(doc, jobId, bucketName) {
+  const http = require('http')
+  if (!(await createBucket(bucketName))) return
+  if (doc.get('source') === 'dropbox') {
+    return doc.get('files').forEach((file) => {
+      const fileRef = storage.bucket(bucketName).file(file.name)
+      http.get(file.link, function (res) {
+        res.pipe(fileRef.createWriteStream())
+      })
+    })
+  } else if (doc.get('source') === 'gdrive') {
+    // TODO: Implement Google Drive Takeout
+  } else if (doc.get('source') === 'odrive') {
+    // TODO: Implement One Drive Takeout
   }
+}
+
+/**
+ * Creates a transfer job.
+ * @param {any} doc Document reference of a Job entity
+ * @param {string} jobId The ID of the job
+ * @param {string} bucketName The name of the bucket
+ * @returns {Promise<void>}
+ */
+async function executeTransfer(doc, jobId, bucketName) {
+  let transferSpec = {}
+  if (doc.get('source') === 'aws') {
+    transferSpec = {
+      awsS3DataSource: {
+        bucketName: doc.get('sourceName'),
+        awsAccessKey: {
+          accessKeyId: doc.get('awsIdAzureCon'),
+          secretAccessKey: doc.get('accessKey')
+        }
+      },
+      gcsDataSink: {
+        bucketName: bucketName
+      },
+      transferOptions: {
+        overwriteObjectsAlreadyExistingInSink: true,
+        deleteObjectsFromSourceAfterTransfer: false
+      }
+    }
+  } else if (doc.get('source') === 'azure') {
+    transferSpec = {
+      azureBlobStorageDataSource: {
+        storageAccount: doc.get('sourceName'),
+        azureCredentials: {
+          sasToken: doc.get('accessKey')
+        },
+        container: doc.get('awsIdAzureCon')
+      },
+      gcsDataSink: {
+        bucketName: bucketName
+      },
+      transferOptions: {
+        overwriteObjectsAlreadyExistingInSink: true,
+        deleteObjectsFromSourceAfterTransfer: false
+      }
+    }
+  } else if (doc.get('source') === 'gcloud') {
+    transferSpec = {
+      gcsDataSource: {
+        bucketName: doc.get('sourceName')
+      },
+      gcsDataSink: {
+        bucketName: bucketName
+      },
+      transferOptions: {
+        overwriteObjectsAlreadyExistingInSink: true,
+        deleteObjectsFromSourceAfterTransfer: false
+      }
+    }
+  }
+  if (transferSpec !== {}) {
+    return createJob(jobId, transferSpec, bucketName)
+  }
+}
+
+/**
+ * Creates the transfer job.
+ * @param {string} jobId - jobId data
+ * @param {any} transferSpec - Transfer Job Spec. See:
+ * https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec
+ * @param {string} bucketName - Name of the bucket
+ */
+async function createJob(jobId, transferSpec, bucketName) {
+  const authClient = await authorize()
+  const date = new Date()
+  const request = {
+    resource: {
+      name: `transferJobs/${jobId}`,
+      description: jobId,
+      status: 'ENABLED',
+      projectId: projectId,
+      notificationConfig: {
+        pubsubTopic: `projects/${projectId}/topics/jobs`,
+        payloadFormat: 'JSON'
+      },
+      schedule: {
+        scheduleStartDate: {
+          day: date.getDate(),
+          month: date.getMonth(),
+          year: date.getFullYear()
+        },
+        scheduleEndDate: {
+          day: date.getDate(),
+          month: date.getMonth(),
+          year: date.getFullYear()
+        }
+      },
+      transferSpec: transferSpec
+    },
+    auth: authClient
+  }
+
+  try {
+    if (await createBucket(bucketName)) {
+      return storageTransfer.transferJobs.create(request)
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/**
+ * Authorises application for transfer job.
+ * @returns {google.auth.GoogleAuth} authClient
+ */
+async function authorize() {
+  const auth = new google.auth.GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+  })
+  return auth.getClient()
 }
 
 /**
@@ -156,63 +228,6 @@ async function addBucketIamMember(bucketName) {
 
   // Updates the bucket's IAM policy
   await bucket.iam.setPolicy(policy)
-}
-
-/**
- * Creates the transfer job.
- * @param {string} jobId - jobId data
- * @param {any} transferSpec - Transfer Job Spec. See:
- * https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec
- * @param {string} bucketName - Name of the bucket
- * @returns {string} Name of the transfer
- */
-async function createJob(jobId, transferSpec, bucketName) {
-  const authClient = await authorize()
-  if (!(await createBucket(bucketName))) return ''
-  const date = new Date()
-  const request = {
-    resource: {
-      name: `transferJobs/${jobId}`,
-      description: jobId,
-      status: 'ENABLED',
-      projectId: projectId,
-      notificationConfig: {
-        pubsubTopic: `projects/${projectId}/topics/jobs`,
-        payloadFormat: 'JSON'
-      },
-      schedule: {
-        scheduleStartDate: {
-          day: date.getDate(),
-          month: date.getMonth(),
-          year: date.getFullYear()
-        },
-        scheduleEndDate: {
-          day: date.getDate(),
-          month: date.getMonth(),
-          year: date.getFullYear()
-        }
-      },
-      transferSpec: transferSpec
-    },
-    auth: authClient
-  }
-
-  try {
-    await storagetransfer.transferJobs.create(request)
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-/**
- * Authorises application for transfer job.
- * @returns {google.auth.GoogleAuth} authClient
- */
-async function authorize() {
-  const auth = new google.auth.GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/cloud-platform']
-  })
-  return auth.getClient()
 }
 
 /**
