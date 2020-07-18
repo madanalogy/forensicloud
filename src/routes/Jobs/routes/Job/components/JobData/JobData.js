@@ -70,12 +70,10 @@ function JobData() {
           ))}
           <TableRow>
             <TableCell component="th" scope="row">
-              Access URL
+              Access URL(s)
             </TableCell>
             <TableCell align="left">
-              <a href={(job && job.accessUrl) || '#'}>
-                {(job && job.accessUrl) || 'Not Available'}
-              </a>
+              <pre>{JSON.stringify(job.accessUrls, null, 2)}</pre>
             </TableCell>
           </TableRow>
         </TableBody>

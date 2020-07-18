@@ -5,7 +5,7 @@ const { google } = require('googleapis')
 const { Storage } = require('@google-cloud/storage')
 const storagetransfer = google.storagetransfer('v1')
 const storage = new Storage()
-const projectId = 'forensicloud'
+const projectId = process.env.GCP_PROJECT
 
 /**
  * Starts a cloud service job.

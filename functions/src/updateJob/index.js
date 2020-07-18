@@ -1,9 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-
-const { Storage } = require('@google-cloud/storage')
-const storage = new Storage()
-const projectId = 'forensicloud'
+import { generateAccessUrls } from 'utils/access'
 
 /**
  * Updates a cloud service job.
@@ -24,39 +21,19 @@ async function updateJob(message, context) {
   }
   const jobId = data.transferJobName.split('/')[1]
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
-  const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
-  const bucketName = `${projectId}-${hash}`
-  const bucketUrl = await generateSignedUrl(bucketName).catch(console.error)
+  const urlList = await generateAccessUrls(jobId).catch(console.error)
 
   await jobRef
     .update({
       status: data.status,
       completedAt: data.endTime,
-      accessUrl: bucketUrl || ''
+      accessUrls: urlList || {}
     })
     .catch(console.error)
 
   if (data.status === 'FAILED') {
     console.error(JSON.stringify(data.errorBreakdowns))
   }
-}
-
-/**
- * Generates the signed url for the bucket.
- * @param {string} bucketName - The name of the bucket to give access to
- * @returns {Promise<string>} - The signed URL for access
- */
-async function generateSignedUrl(bucketName) {
-  const options = {
-    version: 'v2',
-    action: 'list',
-    expires: Date.now() + 1000 * 604800 // 7 days
-  }
-
-  // Get a signed URL for reading the bucket
-  const [url] = await storage.bucket(bucketName).getSignedUrl(options)
-
-  return url
 }
 
 /**
