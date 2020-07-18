@@ -73,7 +73,11 @@ function JobData() {
               Access URL(s)
             </TableCell>
             <TableCell align="left">
-              <pre>{JSON.stringify(job.accessUrls, null, 2)}</pre>
+              <pre>
+                {job && job.accessUrls
+                  ? JSON.stringify(job.accessUrls, null, 2)
+                  : 'Not Available'}
+              </pre>
             </TableCell>
           </TableRow>
         </TableBody>

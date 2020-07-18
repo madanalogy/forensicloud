@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
+import { generateAccessUrls } from 'utils/access'
 
 const { google } = require('googleapis')
 const { Storage } = require('@google-cloud/storage')
@@ -50,12 +51,29 @@ async function executeTakeout(doc, jobId, bucketName) {
   const http = require('http')
   if (!(await createBucket(bucketName))) return
   if (doc.get('source') === 'dropbox') {
-    return doc.get('files').forEach((file) => {
+    const failed = []
+    await doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
-      http.get(file.link, function (res) {
-        res.pipe(fileRef.createWriteStream())
+      http.get(file.link, (res) => {
+        res.pipe(fileRef.createWriteStream()).on('error', (err) => {
+          console.error(`Error downloading file: ${file.name} \\n ${err}`)
+          failed.push(file.name)
+        })
       })
     })
+    const urlList = await generateAccessUrls(jobId).catch(console.error)
+    return doc
+      .set(
+        {
+          status: failed.length === 0 ? 'SUCCESS' : 'FAILED',
+          completedAt: Date.now(),
+          accessUrls: urlList || null
+        },
+        {
+          merge: true
+        }
+      )
+      .catch(console.error)
   } else if (doc.get('source') === 'gdrive') {
     // TODO: Implement Google Drive Takeout
   } else if (doc.get('source') === 'odrive') {
@@ -164,7 +182,7 @@ async function createJob(jobId, transferSpec, bucketName) {
 
   try {
     if (await createBucket(bucketName)) {
-      return storageTransfer.transferJobs.create(request)
+      await storageTransfer.transferJobs.create(request)
     }
   } catch (err) {
     console.error(err)

@@ -9,7 +9,7 @@ import { generateAccessUrls } from 'utils/access'
  * @param {functions.EventContext} context - Function context. More info in docs:
  * https://firebase.google.com/docs/reference/functions/cloud_functions_.eventcontext
  * https://cloud.google.com/functions/docs/writing/background#function_parameters
- * @returns {Promise} Resolves with user's profile
+ * @returns {Promise<void>}
  */
 async function updateJob(message, context) {
   const data = message.data
@@ -22,18 +22,21 @@ async function updateJob(message, context) {
   const jobId = data.transferJobName.split('/')[1]
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
   const urlList = await generateAccessUrls(jobId).catch(console.error)
-
-  await jobRef
-    .update({
-      status: data.status,
-      completedAt: data.endTime,
-      accessUrls: urlList || {}
-    })
-    .catch(console.error)
-
   if (data.status === 'FAILED') {
     console.error(JSON.stringify(data.errorBreakdowns))
   }
+  return jobRef
+    .set(
+      {
+        status: data.status,
+        completedAt: data.endTime,
+        accessUrls: urlList || null
+      },
+      {
+        merge: true
+      }
+    )
+    .catch(console.error)
 }
 
 /**
