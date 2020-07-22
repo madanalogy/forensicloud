@@ -78,8 +78,8 @@ function JobsList() {
                     ? job.status === 'IN_PROGRESS'
                       ? 'In Progress'
                       : job.status === 'SUCCESS'
-                      ? 'Completed Successfully'
-                      : 'Completed with Errors'
+                      ? 'Completed'
+                      : 'Unsuccessful'
                     : null
                 }
               />

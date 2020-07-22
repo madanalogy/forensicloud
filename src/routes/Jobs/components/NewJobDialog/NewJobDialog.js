@@ -153,12 +153,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
           )}
           <br />
           {type === 'takeout' && source === 'dropbox' && (
-            <Controller
-              as={<List label="Selected Files" />}
-              name="fileList"
-              id="fileList"
-              control={control}
-            />
+            <List label="Selected Files" id="fileList" />
           )}
           {type === 'transfer' && (source === 'aws' || source === 'azure') && (
             <TextField

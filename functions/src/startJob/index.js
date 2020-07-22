@@ -48,13 +48,13 @@ async function startJob(change, context) {
  * @returns {Promise<void>}
  */
 async function executeTakeout(doc, jobId, bucketName) {
-  const http = require('http')
+  const https = require('https')
   if (!(await createBucket(bucketName))) return
   if (doc.get('source') === 'dropbox') {
     const failed = []
     await doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
-      http.get(file.link, (res) => {
+      https.get(file.link, (res) => {
         res.pipe(fileRef.createWriteStream()).on('error', (err) => {
           console.error(`Error downloading file: ${file.name} \\n ${err}`)
           failed.push(file.name)
