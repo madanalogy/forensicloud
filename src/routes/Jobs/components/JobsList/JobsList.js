@@ -73,7 +73,15 @@ function JobsList() {
                 key={`Job-${job.id}-${ind}`}
                 name={job && job.name}
                 jobId={job.id}
-                status={job.status}
+                status={
+                  job.status
+                    ? job.status === 'IN_PROGRESS'
+                      ? 'In Progress'
+                      : job.status === 'SUCCESS'
+                      ? 'Completed Successfully'
+                      : 'Completed with Errors'
+                    : null
+                }
               />
             )
           })}

@@ -51,7 +51,7 @@ function JobTile({ name, jobId, showDelete, status }) {
       </div>
       <br />
       <span className={classes.name} onClick={goToJob}>
-        Status: {status || 'UNKNOWN'}
+        Status: {status || 'Error'}
       </span>
     </Paper>
   )

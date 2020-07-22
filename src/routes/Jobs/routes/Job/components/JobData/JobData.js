@@ -37,12 +37,25 @@ function JobData() {
   const rows = [
     createData(
       'Source Details',
-      'Type: '
+      'From: '
         .concat(job && job.source.toUpperCase())
-        .concat(', Name: ')
-        .concat(job && job.sourceName.toUpperCase())
+        .concat(
+          (job &&
+            job.sourceName &&
+            ', Name: '.concat(job.sourceName.toUpperCase())) ||
+            ''
+        )
     ),
-    createData('Status', job && job.status.toUpperCase()),
+    createData(
+      'Status',
+      job && job.status
+        ? job.status === 'IN_PROGRESS'
+          ? 'In Progress'
+          : job.status === 'SUCCESS'
+          ? 'Completed Successfully'
+          : 'Completed with Errors'
+        : null
+    ),
     createData(
       'Timestamps (UTC)',
       'Created At: '
@@ -54,7 +67,9 @@ function JobData() {
 
   return (
     <CardContent>
-      <Typography component="h2">{(job && job.name) || 'Job'}</Typography>
+      <Typography component="h2">
+        Job Name: {(job && job.name) || 'Job'}
+      </Typography>
       <Typography component="h3">
         Job Type: {(job && job.type.toUpperCase()) || 'Unknown'}
       </Typography>

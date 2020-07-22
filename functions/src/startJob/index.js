@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { generateAccessUrls } from 'utils/access'
+import { generateAccessUrls, generateBucketName } from 'utils/helpers'
 import { projectId } from 'utils/const'
 
 const { google } = require('googleapis')
@@ -18,10 +18,10 @@ const storage = new Storage()
  * https://cloud.google.com/functions/docs/writing/background#function_parameters
  */
 async function startJob(change, context) {
-  const { jobId } = context.params || {}
-  const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
-  const bucketName = `${projectId}-${hash}`
+  const { jobId } = context.params || null
+  if (jobId === null) return
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
+  const bucketName = await generateBucketName(jobId)
   await jobRef
     .get()
     .then((doc) => {
@@ -32,7 +32,7 @@ async function startJob(change, context) {
       } else if (doc.get('type') === 'takeout') {
         return executeTakeout(doc, jobId, bucketName)
       } else {
-        console.error('No such source!')
+        console.error('No such job type!')
       }
     })
     .catch((err) => {
@@ -50,7 +50,7 @@ async function startJob(change, context) {
 async function executeTakeout(doc, jobId, bucketName) {
   const http = require('http')
   if (!(await createBucket(bucketName))) return
-  if (doc.get('drive') === 'dropbox') {
+  if (doc.get('source') === 'dropbox') {
     const failed = []
     await doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
@@ -74,9 +74,9 @@ async function executeTakeout(doc, jobId, bucketName) {
         }
       )
       .catch(console.error)
-  } else if (doc.get('drive') === 'gdrive') {
+  } else if (doc.get('source') === 'gdrive') {
     // TODO: Implement Google Drive Takeout
-  } else if (doc.get('drive') === 'odrive') {
+  } else if (doc.get('source') === 'odrive') {
     // TODO: Implement One Drive Takeout
   }
 }
@@ -89,6 +89,13 @@ async function executeTakeout(doc, jobId, bucketName) {
  * @returns {Promise<void>}
  */
 async function executeTransfer(doc, jobId, bucketName) {
+  const gcsDataSink = {
+    bucketName: bucketName
+  }
+  const transferOptions = {
+    overwriteObjectsAlreadyExistingInSink: true,
+    deleteObjectsFromSourceAfterTransfer: false
+  }
   let transferSpec = {}
   if (doc.get('source') === 'aws') {
     transferSpec = {
@@ -99,13 +106,8 @@ async function executeTransfer(doc, jobId, bucketName) {
           secretAccessKey: doc.get('accessKey')
         }
       },
-      gcsDataSink: {
-        bucketName: bucketName
-      },
-      transferOptions: {
-        overwriteObjectsAlreadyExistingInSink: true,
-        deleteObjectsFromSourceAfterTransfer: false
-      }
+      gcsDataSink: gcsDataSink,
+      transferOptions: transferOptions
     }
   } else if (doc.get('source') === 'azure') {
     transferSpec = {
@@ -116,26 +118,16 @@ async function executeTransfer(doc, jobId, bucketName) {
         },
         container: doc.get('awsIdAzureCon')
       },
-      gcsDataSink: {
-        bucketName: bucketName
-      },
-      transferOptions: {
-        overwriteObjectsAlreadyExistingInSink: true,
-        deleteObjectsFromSourceAfterTransfer: false
-      }
+      gcsDataSink: gcsDataSink,
+      transferOptions: transferOptions
     }
   } else if (doc.get('source') === 'gcloud') {
     transferSpec = {
       gcsDataSource: {
         bucketName: doc.get('sourceName')
       },
-      gcsDataSink: {
-        bucketName: bucketName
-      },
-      transferOptions: {
-        overwriteObjectsAlreadyExistingInSink: true,
-        deleteObjectsFromSourceAfterTransfer: false
-      }
+      gcsDataSink: gcsDataSink,
+      transferOptions: transferOptions
     }
   }
   if (transferSpec !== {}) {

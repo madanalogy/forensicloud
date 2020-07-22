@@ -1,10 +1,10 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { generateAccessUrls } from 'utils/access'
+import { generateAccessUrls } from 'utils/helpers'
 
 /**
  * Updates a cloud service job.
- * @param {functions.Event} message - PubSub event from function trigger. See:
+ * @param {functions.pubsub.Message} message - PubSub event from function trigger. See:
  * https://cloud.google.com/storage-transfer/docs/reference/rest/v1/NotificationConfig
  * @param {functions.EventContext} context - Function context. More info in docs:
  * https://firebase.google.com/docs/reference/functions/cloud_functions_.eventcontext
