@@ -30,7 +30,7 @@ async function updateJob(message, context) {
       {
         status: data.status,
         completedAt: data.endTime,
-        accessUrls: urlList || null
+        accessUrls: urlList
       },
       {
         merge: true

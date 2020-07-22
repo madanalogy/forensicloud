@@ -67,7 +67,7 @@ async function executeTakeout(doc, jobId, bucketName) {
         {
           status: failed.length === 0 ? 'SUCCESS' : 'FAILED',
           completedAt: Date.now(),
-          accessUrls: urlList || null
+          accessUrls: urlList
         },
         {
           merge: true
