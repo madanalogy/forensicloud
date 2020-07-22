@@ -96,7 +96,8 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               label={
                 (source === 'gcloud' && 'GCloud Bucket Name') ||
                 (source === 'aws' && 'AWS Bucket Name') ||
-                (source === 'azure' && 'Azure Storage Account')
+                (source === 'azure' && 'Azure Storage Account') ||
+                'GCloud Bucket Name' // This was added due to error showing label on initial load
               }
               inputRef={register({
                 required: true
@@ -106,7 +107,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             />
           )}
           <br />
-          {(source === 'aws' || source === 'azure') && (
+          {type === 'transfer' && (source === 'aws' || source === 'azure') && (
             <TextField
               error={!!errors.awsIdAzureCon}
               helperText={errors.awsIdAzureCon && 'ID/Container is required'}
@@ -122,7 +123,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               fullWidth
             />
           )}
-          {source === 'dropbox' && (
+          {type === 'takeout' && source === 'dropbox' && (
             <Controller
               as={
                 <DropboxChooser
@@ -151,7 +152,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             />
           )}
           <br />
-          {source === 'dropbox' && (
+          {type === 'takeout' && source === 'dropbox' && (
             <Controller
               as={<List label="Selected Files" />}
               name="fileList"
@@ -159,7 +160,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               control={control}
             />
           )}
-          {(source === 'aws' || source === 'azure') && (
+          {type === 'transfer' && (source === 'aws' || source === 'azure') && (
             <TextField
               error={!!errors.awsIdAzureCon}
               helperText={errors.awsIdAzureCon && 'Access Key is required'}

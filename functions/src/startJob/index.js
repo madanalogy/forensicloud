@@ -1,12 +1,12 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
 import { generateAccessUrls } from 'utils/access'
+import { projectId } from 'utils/const'
 
 const { google } = require('googleapis')
 const { Storage } = require('@google-cloud/storage')
 const storageTransfer = google.storagetransfer('v1')
 const storage = new Storage()
-const projectId = process.env.GCP_PROJECT
 
 /**
  * Starts a cloud service job.
@@ -50,7 +50,7 @@ async function startJob(change, context) {
 async function executeTakeout(doc, jobId, bucketName) {
   const http = require('http')
   if (!(await createBucket(bucketName))) return
-  if (doc.get('source') === 'dropbox') {
+  if (doc.get('drive') === 'dropbox') {
     const failed = []
     await doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
@@ -74,9 +74,9 @@ async function executeTakeout(doc, jobId, bucketName) {
         }
       )
       .catch(console.error)
-  } else if (doc.get('source') === 'gdrive') {
+  } else if (doc.get('drive') === 'gdrive') {
     // TODO: Implement Google Drive Takeout
-  } else if (doc.get('source') === 'odrive') {
+  } else if (doc.get('drive') === 'odrive') {
     // TODO: Implement One Drive Takeout
   }
 }

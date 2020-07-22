@@ -1,3 +1,5 @@
+import { projectId } from './const'
+
 /**
  * This function generates a list of URLs of all items in a bucket
  * @param {string} jobId Name of the bucket to generate URLs for
@@ -5,7 +7,7 @@
  */
 export async function generateAccessUrls(jobId) {
   const hash = require('crypto').createHash('md5').update(jobId).digest('hex')
-  const bucketName = `${process.env.GCP_PROJECT}-${hash}`
+  const bucketName = `${projectId}-${hash}`
   const { Storage } = require('@google-cloud/storage')
   const storage = new Storage()
   const [files] = await storage.bucket(bucketName).getFiles()
