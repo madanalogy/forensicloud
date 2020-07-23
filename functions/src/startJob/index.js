@@ -62,13 +62,13 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
         })
       })
     })
-    const url = await generateAccessUrls(jobId)
+    const url = await generateAccessUrls(jobId).catch(console.error)
     return jobRef
       .set(
         {
           status: failed.length === 0 ? 'SUCCESS' : 'FAILED',
           completedAt: Date.now(),
-          accessUrl: url
+          accessUrl: url || 'Error'
         },
         {
           merge: true

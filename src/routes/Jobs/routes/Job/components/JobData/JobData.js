@@ -90,8 +90,12 @@ function JobData() {
             </TableCell>
             <TableCell align="left">
               <Link
-                href={job && (job.accessUrl === 'Error' ? '#' : job.accessUrl)}>
-                {job.accessUrl === 'Error' ? 'Not Available' : job.accessUrl}
+                href={
+                  job &&
+                  job.accessUrl &&
+                  (job.accessUrl === 'Error' ? '#' : job.accessUrl)
+                }>
+                {job.accessUrl ? job.accessUrl : 'Not Available'}
               </Link>
             </TableCell>
           </TableRow>
