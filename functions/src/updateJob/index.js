@@ -21,7 +21,7 @@ async function updateJob(message, context) {
   }
   const jobId = data.transferJobName.split('/')[1]
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
-  const urlList = await generateAccessUrls(jobId).catch(console.error)
+  const url = await generateAccessUrls(jobId)
   if (data.status === 'FAILED') {
     console.error(JSON.stringify(data.errorBreakdowns))
   }
@@ -30,7 +30,7 @@ async function updateJob(message, context) {
       {
         status: data.status,
         completedAt: data.endTime,
-        accessUrls: urlList || null
+        accessUrl: url
       },
       {
         merge: true

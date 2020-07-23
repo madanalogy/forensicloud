@@ -10,6 +10,7 @@ import { useFirestoreDoc, useFirestore } from 'reactfire'
 import { JOBS_COLLECTION } from 'constants/firebasePaths'
 import { makeStyles } from '@material-ui/core/styles'
 import styles from './JobData.styles'
+import { Link } from '@material-ui/core'
 
 const useStyles = makeStyles(styles)
 
@@ -85,14 +86,13 @@ function JobData() {
           ))}
           <TableRow>
             <TableCell component="th" scope="row">
-              Access URL(s)
+              Access URL
             </TableCell>
             <TableCell align="left">
-              <pre>
-                {job && job.accessUrls
-                  ? JSON.stringify(job.accessUrls, null, 2)
-                  : 'Not Available'}
-              </pre>
+              <Link
+                href={job && (job.accessUrl === 'Error' ? '#' : job.accessUrl)}>
+                {job.accessUrl === 'Error' ? 'Not Available' : job.accessUrl}
+              </Link>
             </TableCell>
           </TableRow>
         </TableBody>

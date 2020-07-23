@@ -45,7 +45,7 @@ async function startJob(change, context) {
  * @param {any} doc Document reference of a Job entity
  * @param {string} jobId The ID of the job
  * @param {string} bucketName The name of the bucket
- * @param jobRef
+ * @param {any} jobRef Document Reference
  * @returns {Promise<void>}
  */
 async function executeTakeout(doc, jobId, bucketName, jobRef) {
@@ -62,13 +62,13 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
         })
       })
     })
-    const urlList = await generateAccessUrls(jobId).catch(console.error)
+    const url = await generateAccessUrls(jobId)
     return jobRef
       .set(
         {
           status: failed.length === 0 ? 'SUCCESS' : 'FAILED',
           completedAt: Date.now(),
-          accessUrls: urlList || null
+          accessUrl: url
         },
         {
           merge: true

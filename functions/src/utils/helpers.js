@@ -3,7 +3,7 @@ import { projectId } from './const'
 /**
  * This function generates a list of URLs of all items in a bucket
  * @param {string} jobId Name of the bucket to generate URLs for
- * @returns {Promise<{string}>} Hashmap of filename to access URL
+ * @returns {Promise<string>} Hashmap of filename to access URL
  */
 export async function generateAccessUrls(jobId) {
   const bucketName = await generateBucketName(jobId)
@@ -13,10 +13,10 @@ export async function generateAccessUrls(jobId) {
     action: 'list',
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
   }
-  let url = ''
-  bucket.getSignedUrl(options).then((resp) => {
-    url = resp[0]
-  })
+  const url = await bucket.getSignedUrl(options).url
+  if (!url) {
+    return 'Error'
+  }
   return url
 }
 
