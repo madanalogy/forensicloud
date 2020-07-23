@@ -30,7 +30,7 @@ async function startJob(change, context) {
       } else if (doc.get('type') === 'transfer') {
         return executeTransfer(doc, jobId, bucketName)
       } else if (doc.get('type') === 'takeout') {
-        return executeTakeout(doc, jobId, bucketName)
+        return executeTakeout(doc, jobId, bucketName, jobRef)
       } else {
         console.error('No such job type!')
       }
@@ -45,9 +45,10 @@ async function startJob(change, context) {
  * @param {any} doc Document reference of a Job entity
  * @param {string} jobId The ID of the job
  * @param {string} bucketName The name of the bucket
+ * @param jobRef
  * @returns {Promise<void>}
  */
-async function executeTakeout(doc, jobId, bucketName) {
+async function executeTakeout(doc, jobId, bucketName, jobRef) {
   const https = require('https')
   if (!(await createBucket(bucketName))) return
   if (doc.get('source') === 'dropbox') {
@@ -62,12 +63,12 @@ async function executeTakeout(doc, jobId, bucketName) {
       })
     })
     const urlList = await generateAccessUrls(jobId).catch(console.error)
-    return doc
+    return jobRef
       .set(
         {
           status: failed.length === 0 ? 'SUCCESS' : 'FAILED',
           completedAt: Date.now(),
-          accessUrls: urlList
+          accessUrls: urlList || null
         },
         {
           merge: true
