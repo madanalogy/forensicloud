@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { generateAccessUrls, generateBucketName } from 'utils/helpers'
+import { completeJob, generateBucketName } from 'utils/helpers'
 import { projectId } from 'utils/const'
 
 const { google } = require('googleapis')
@@ -52,29 +52,19 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
   const https = require('https')
   if (!(await createBucket(bucketName))) return
   if (doc.get('source') === 'dropbox') {
-    let failed = 0
+    let failed = false
     await doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
       https.get(file.link, (res) => {
         res.pipe(fileRef.createWriteStream()).on('error', (err) => {
           console.error(`Error downloading file: ${file.name} \\n ${err}`)
-          failed++
+          failed = true
         })
       })
     })
-    const urlList = await generateAccessUrls(jobId).catch(console.error)
-    return jobRef
-      .set(
-        {
-          status: failed === 0 ? 'SUCCESS' : 'FAILED',
-          completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
-          access: urlList || 'Error'
-        },
-        {
-          merge: true
-        }
-      )
-      .catch(console.error)
+    return completeJob(jobId, jobRef, failed ? 'FAILED' : 'SUCCESS').catch(
+      console.error
+    )
   } else if (doc.get('source') === 'gdrive') {
     // TODO: Implement Google Drive Takeout
   } else if (doc.get('source') === 'odrive') {

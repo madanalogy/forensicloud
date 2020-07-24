@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { generateAccessUrls } from 'utils/helpers'
+import { completeJob } from 'utils/helpers'
 
 /**
  * Updates a cloud service job.
@@ -21,22 +21,7 @@ async function updateJob(message, context) {
   }
   const jobId = data.transferJobName.split('/')[1]
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
-  const urlList = await generateAccessUrls(jobId).catch(console.error)
-  if (data.status === 'FAILED') {
-    console.error(JSON.stringify(data.errorBreakdowns))
-  }
-  return jobRef
-    .set(
-      {
-        status: data.status,
-        completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
-        access: urlList || 'Error'
-      },
-      {
-        merge: true
-      }
-    )
-    .catch(console.error)
+  return completeJob(jobId, jobRef, data.status).catch(console.error)
 }
 
 /**

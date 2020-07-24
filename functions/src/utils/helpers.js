@@ -1,38 +1,51 @@
+import * as admin from 'firebase-admin'
 import { projectId } from './const'
 
 /**
  * This function generates a list of URLs of all items in a bucket
  * @param {string} jobId Name of the bucket to generate URLs for
- * @returns {Promise<[]>} URL list
+ * @param {any} jobRef Firestore document reference
+ * @param {string} status Job completion status
  */
-export async function generateAccessUrls(jobId) {
+export async function completeJob(jobId, jobRef, status) {
   const bucketName = await generateBucketName(jobId)
   const { Storage } = require('@google-cloud/storage')
+  await jobRef
+    .set(
+      {
+        status: status,
+        completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
+        access: []
+      },
+      {
+        merge: true
+      }
+    )
+    .catch(console.error)
   const options = {
     action: 'read',
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
   }
-  const urlList = []
-  await new Storage().bucket(bucketName).getFiles(async function (err, files) {
+  await new Storage().bucket(bucketName).getFiles((err, files) => {
     if (err) {
       console.error(err)
       return
     }
-    await files.forEach((file) => {
-      file.getSignedUrl(options, async function (e, signedUrl) {
+    files.forEach((file) => {
+      file.getSignedUrl(options, (e, signedUrl) => {
         if (e) {
           console.error(e)
           return
         }
-        await urlList.push({
-          name: file.name,
-          url: signedUrl
+        jobRef.update({
+          access: admin.firestore.FieldValue.arrayUnion({
+            name: file.name,
+            url: signedUrl
+          })
         })
-        console.log(signedUrl)
       })
     })
   })
-  return urlList
 }
 
 /**
