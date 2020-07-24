@@ -52,23 +52,23 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
   const https = require('https')
   if (!(await createBucket(bucketName))) return
   if (doc.get('source') === 'dropbox') {
-    const failed = []
+    let failed = 0
     await doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
       https.get(file.link, (res) => {
         res.pipe(fileRef.createWriteStream()).on('error', (err) => {
           console.error(`Error downloading file: ${file.name} \\n ${err}`)
-          failed.push(file.name)
+          failed++
         })
       })
     })
-    const url = await generateAccessUrls(jobId).catch(console.error)
+    const urlList = await generateAccessUrls(jobId).catch(console.error)
     return jobRef
       .set(
         {
-          status: failed.length === 0 ? 'SUCCESS' : 'FAILED',
-          completedAt: Date.now(),
-          accessUrl: url || 'Error'
+          status: failed === 0 ? 'SUCCESS' : 'FAILED',
+          completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
+          access: urlList || 'Error'
         },
         {
           merge: true

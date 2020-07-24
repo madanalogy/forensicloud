@@ -3,17 +3,25 @@ import { projectId } from './const'
 /**
  * This function generates a list of URLs of all items in a bucket
  * @param {string} jobId Name of the bucket to generate URLs for
- * @returns {Promise<string>} Access URL
+ * @returns {Promise<[]>} URL list
  */
 export async function generateAccessUrls(jobId) {
   const bucketName = await generateBucketName(jobId)
   const { Storage } = require('@google-cloud/storage')
   const bucket = new Storage().bucket(bucketName)
+  const files = await bucket.getFiles()
   const options = {
-    action: 'list',
+    action: 'read',
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
   }
-  return bucket.getSignedUrl(options).url
+  const urlList = []
+  await files.forEach((file) => {
+    urlList.push({
+      name: file.name,
+      url: bucket.file(file.name).getSignedUrl(options).url
+    })
+  })
+  return urlList
 }
 
 /**
