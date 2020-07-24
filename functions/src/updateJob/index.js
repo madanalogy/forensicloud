@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { completeJob } from 'utils/helpers'
+import { generateBucketName } from 'utils/helpers'
 
 /**
  * Updates a cloud service job.
@@ -21,7 +21,53 @@ async function updateJob(message, context) {
   }
   const jobId = data.transferJobName.split('/')[1]
   const jobRef = admin.firestore().collection('jobs').doc(jobId)
-  return completeJob(jobId, jobRef, data.status).catch(console.error)
+  await jobRef
+    .set(
+      {
+        status: data.status,
+        completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
+        access: []
+      },
+      {
+        merge: true
+      }
+    )
+    .catch(console.error)
+  return completeJob(jobId, jobRef).catch(console.error)
+}
+
+/**
+ * This function generates a list of URLs of all items in a bucket
+ * @param {string} jobId Name of the bucket to generate URLs for
+ * @param {any} jobRef Firestore document reference
+ */
+export async function completeJob(jobId, jobRef) {
+  const bucketName = await generateBucketName(jobId)
+  const { Storage } = require('@google-cloud/storage')
+  const options = {
+    action: 'read',
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+  }
+  await new Storage().bucket(bucketName).getFiles((err, files) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+    files.forEach((file) => {
+      file.getSignedUrl(options, (e, signedUrl) => {
+        if (e) {
+          console.error(e)
+          return
+        }
+        jobRef.update({
+          access: admin.firestore.FieldValue.arrayUnion({
+            name: file.name,
+            url: signedUrl
+          })
+        })
+      })
+    })
+  })
 }
 
 /**

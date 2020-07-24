@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
-import { completeJob, generateBucketName } from 'utils/helpers'
+import { generateBucketName } from 'utils/helpers'
 import { projectId } from 'utils/const'
 
 const { google } = require('googleapis')
@@ -52,19 +52,49 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
   const https = require('https')
   if (!(await createBucket(bucketName))) return
   if (doc.get('source') === 'dropbox') {
-    let failed = false
-    await doc.get('files').forEach((file) => {
+    await jobRef
+      .set(
+        {
+          status: 'SUCCESS',
+          completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
+          access: []
+        },
+        {
+          merge: true
+        }
+      )
+      .catch(console.error)
+    const options = {
+      action: 'read',
+      expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+    }
+    doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
-      https.get(file.link, (res) => {
-        res.pipe(fileRef.createWriteStream()).on('error', (err) => {
-          console.error(`Error downloading file: ${file.name} \\n ${err}`)
-          failed = true
-        })
+      https.get(file.link, (response) => {
+        response
+          .pipe(fileRef.createWriteStream())
+          .on('error', (err) => {
+            console.error(`Error downloading file: ${file.name}\\n${err}\\n`)
+            jobRef.update({ status: 'FAILED' })
+          })
+          .on('finish', () => {
+            fileRef.getSignedUrl(options, (err, signedUrl) => {
+              if (err) {
+                console.error(err)
+                jobRef.update({ status: 'FAILED' })
+                return
+              }
+              jobRef.update({
+                access: admin.firestore.FieldValue.arrayUnion({
+                  name: file.name,
+                  url: signedUrl
+                }),
+                completedAt: admin.firestore.Timestamp.fromMillis(Date.now())
+              })
+            })
+          })
       })
     })
-    return completeJob(jobId, jobRef, failed ? 'FAILED' : 'SUCCESS').catch(
-      console.error
-    )
   } else if (doc.get('source') === 'gdrive') {
     // TODO: Implement Google Drive Takeout
   } else if (doc.get('source') === 'odrive') {
