@@ -68,7 +68,7 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
       action: 'read',
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
     }
-    doc.get('files').forEach((file) => {
+    await doc.get('files').forEach((file) => {
       const fileRef = storage.bucket(bucketName).file(file.name)
       https.get(file.link, (response) => {
         response
