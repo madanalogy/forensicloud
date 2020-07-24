@@ -8,17 +8,28 @@ import { projectId } from './const'
 export async function generateAccessUrls(jobId) {
   const bucketName = await generateBucketName(jobId)
   const { Storage } = require('@google-cloud/storage')
-  const bucket = new Storage().bucket(bucketName)
-  const files = await bucket.getFiles()
   const options = {
     action: 'read',
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
   }
   const urlList = []
-  await files.forEach((file) => {
-    urlList.push({
-      name: file.name,
-      url: bucket.file(file.name).getSignedUrl(options).url
+  await new Storage().bucket(bucketName).getFiles(async function (err, files) {
+    if (err) {
+      console.error(err)
+      return
+    }
+    await files.forEach((file) => {
+      file.getSignedUrl(options, async function (e, signedUrl) {
+        if (e) {
+          console.error(e)
+          return
+        }
+        await urlList.push({
+          name: file.name,
+          url: signedUrl
+        })
+        console.log(signedUrl)
+      })
     })
   })
   return urlList
