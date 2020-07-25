@@ -40,15 +40,16 @@ async function updateJob(message, context) {
  * This function generates a list of URLs of all items in a bucket
  * @param {string} jobId Name of the bucket to generate URLs for
  * @param {any} jobRef Firestore document reference
+ * @returns {Promise<void>}
  */
-export async function completeJob(jobId, jobRef) {
+async function completeJob(jobId, jobRef) {
   const bucketName = await generateBucketName(jobId)
   const { Storage } = require('@google-cloud/storage')
   const options = {
     action: 'read',
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
   }
-  await new Storage().bucket(bucketName).getFiles((err, files) => {
+  return new Storage().bucket(bucketName).getFiles((err, files) => {
     if (err) {
       console.error(err)
       return

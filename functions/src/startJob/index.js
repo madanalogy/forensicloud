@@ -49,7 +49,6 @@ async function startJob(change, context) {
  * @returns {Promise<void>}
  */
 async function executeTakeout(doc, jobId, bucketName, jobRef) {
-  const https = require('https')
   if (!(await createBucket(bucketName))) return
   if (doc.get('source') === 'dropbox') {
     await jobRef
@@ -67,32 +66,44 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
       action: 'read',
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
     }
+    const https = require('https')
+    const bucket = storage.bucket(bucketName)
     return doc.get('files').forEach((file) => {
+      const getSignedUrlCallback = function (err, signedUrl) {
+        if (err) {
+          console.error(
+            `Error generating signed url for file: ${file.name}, ${err}`
+          )
+          jobRef.update({ status: 'FAILED' })
+          return
+        }
+        jobRef.update({
+          access: admin.firestore.FieldValue.arrayUnion({
+            name: file.name,
+            url: signedUrl
+          }),
+          completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
+          status: 'SUCCESS'
+        })
+      }
+      const writeCompleteCallback = function () {
+        bucket.file(file.name).get((err, f) => {
+          if (err) {
+            console.error(`Error getting file: ${file.name}, ${err}`)
+            jobRef.update({ status: 'FAILED' })
+            return
+          }
+          f.getSignedUrl(options, getSignedUrlCallback)
+        })
+      }
       https.get(file.link, (response) => {
-        const fileRef = storage.bucket(bucketName).file(file.name)
         response
-          .pipe(fileRef.createWriteStream())
+          .pipe(bucket.file(file.name).createWriteStream())
           .on('error', (err) => {
-            console.error(`Error downloading file: ${file.name}\\n${err}\\n`)
+            console.error(`Error downloading file: ${file.name}, ${err}`)
             jobRef.update({ status: 'FAILED' })
           })
-          .on('finish', () => {
-            fileRef.getSignedUrl(options, (err, signedUrl) => {
-              if (err) {
-                console.error(err)
-                jobRef.update({ status: 'FAILED' })
-                return
-              }
-              jobRef.update({
-                access: admin.firestore.FieldValue.arrayUnion({
-                  name: file.name,
-                  url: signedUrl
-                }),
-                completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
-                status: 'SUCCESS'
-              })
-            })
-          })
+          .on('finish', writeCompleteCallback)
       })
     })
   } else if (doc.get('source') === 'gdrive') {
