@@ -68,15 +68,15 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
     }
     await doc.get('files').forEach((file) => {
-      const fileRef = storage.bucket(bucketName).file(file.name)
       https.get(file.link, (response) => {
+        const fileRef = storage.bucket(bucketName).file(file.name)
         response
           .pipe(fileRef.createWriteStream())
           .on('error', (err) => {
             console.error(`Error downloading file: ${file.name}\\n${err}\\n`)
             jobRef.update({ status: 'FAILED' })
           })
-          .end(() => {
+          .on('finish', () => {
             fileRef.get((e, f) => {
               if (e) {
                 console.error(e)
