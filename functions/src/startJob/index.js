@@ -55,7 +55,6 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
     await jobRef
       .set(
         {
-          status: 'SUCCESS',
           completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
           access: []
         },
@@ -78,18 +77,26 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
             jobRef.update({ status: 'FAILED' })
           })
           .end(() => {
-            fileRef.getSignedUrl(options, (err, signedUrl) => {
-              if (err) {
-                console.error(err)
+            fileRef.get((e, f) => {
+              if (e) {
+                console.error(e)
                 jobRef.update({ status: 'FAILED' })
                 return
               }
-              jobRef.update({
-                access: admin.firestore.FieldValue.arrayUnion({
-                  name: file.name,
-                  url: signedUrl
-                }),
-                completedAt: admin.firestore.Timestamp.fromMillis(Date.now())
+              f.getSignedUrl(options, (err, signedUrl) => {
+                if (err) {
+                  console.error(err)
+                  jobRef.update({ status: 'FAILED' })
+                  return
+                }
+                jobRef.update({
+                  access: admin.firestore.FieldValue.arrayUnion({
+                    name: file.name,
+                    url: signedUrl
+                  }),
+                  completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
+                  status: 'SUCCESS'
+                })
               })
             })
           })
