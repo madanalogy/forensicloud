@@ -67,7 +67,7 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
       action: 'read',
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
     }
-    await doc.get('files').forEach((file) => {
+    return doc.get('files').forEach((file) => {
       https.get(file.link, (response) => {
         const fileRef = storage.bucket(bucketName).file(file.name)
         response
@@ -77,26 +77,19 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
             jobRef.update({ status: 'FAILED' })
           })
           .on('finish', () => {
-            fileRef.get((e, f) => {
-              if (e || !f) {
-                console.error(e || 'Null File')
+            fileRef.getSignedUrl(options, (err, signedUrl) => {
+              if (err) {
+                console.error(err)
                 jobRef.update({ status: 'FAILED' })
                 return
               }
-              f.getSignedUrl(options, (err, signedUrl) => {
-                if (err) {
-                  console.error(err)
-                  jobRef.update({ status: 'FAILED' })
-                  return
-                }
-                jobRef.update({
-                  access: admin.firestore.FieldValue.arrayUnion({
-                    name: file.name,
-                    url: signedUrl
-                  }),
-                  completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
-                  status: 'SUCCESS'
-                })
+              jobRef.update({
+                access: admin.firestore.FieldValue.arrayUnion({
+                  name: file.name,
+                  url: signedUrl
+                }),
+                completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
+                status: 'SUCCESS'
               })
             })
           })
