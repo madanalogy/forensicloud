@@ -78,8 +78,8 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
           })
           .on('finish', () => {
             fileRef.get((e, f) => {
-              if (e) {
-                console.error(e)
+              if (e || !f) {
+                console.error(e || 'Null File')
                 jobRef.update({ status: 'FAILED' })
                 return
               }
