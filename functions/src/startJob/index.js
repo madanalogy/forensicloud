@@ -68,18 +68,18 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
     }
     const https = require('https')
     const bucket = storage.bucket(bucketName)
-    return doc.get('files').forEach((file) => {
+    await doc.get('files').forEach((dropboxFile) => {
       const getSignedUrlCallback = function (err, signedUrl) {
         if (err) {
           console.error(
-            `Error generating signed url for file: ${file.name}, ${err}`
+            `Error generating signed url for file: ${dropboxFile.name}, ${err}`
           )
           jobRef.update({ status: 'FAILED' })
           return
         }
         jobRef.update({
           access: admin.firestore.FieldValue.arrayUnion({
-            name: file.name,
+            name: dropboxFile.name,
             url: signedUrl
           }),
           completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
@@ -87,24 +87,32 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
         })
       }
       const writeCompleteCallback = function () {
-        bucket.file(file.name).get((err, f) => {
+        bucket.file(dropboxFile.name).get((err, file) => {
           if (err) {
-            console.error(`Error getting file: ${file.name}, ${err}`)
+            console.error(`Error getting file: ${dropboxFile.name}, ${err}`)
             jobRef.update({ status: 'FAILED' })
             return
           }
-          f.getSignedUrl(options, getSignedUrlCallback)
+          file.getSignedUrl(options, getSignedUrlCallback)
         })
       }
-      https.get(file.link, (response) => {
+      const httpGetCallback = function (response) {
         response
-          .pipe(bucket.file(file.name).createWriteStream())
+          .pipe(
+            bucket.file(dropboxFile.name).createWriteStream({
+              resumable: false,
+              metadata: {
+                contentType: response.headers['content-type']
+              }
+            })
+          )
           .on('error', (err) => {
-            console.error(`Error downloading file: ${file.name}, ${err}`)
+            console.error(`Error downloading file: ${dropboxFile.name}, ${err}`)
             jobRef.update({ status: 'FAILED' })
           })
           .on('finish', writeCompleteCallback)
-      })
+      }
+      https.get(dropboxFile.link, httpGetCallback)
     })
   } else if (doc.get('source') === 'gdrive') {
     // TODO: Implement Google Drive Takeout
