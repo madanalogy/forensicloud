@@ -77,7 +77,7 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
             console.error(`Error downloading file: ${file.name}\\n${err}\\n`)
             jobRef.update({ status: 'FAILED' })
           })
-          .on('finish', () => {
+          .end(() => {
             fileRef.getSignedUrl(options, (err, signedUrl) => {
               if (err) {
                 console.error(err)
