@@ -85,13 +85,16 @@ function JobData() {
           ))}
           <TableRow>
             <TableCell component="th" scope="row">
-              Access URL
+              Access URL(s)
             </TableCell>
             <TableCell align="left">
               <pre>
-                {job && job.access
-                  ? JSON.stringify(job.access, null, 2)
-                  : 'Not Available'}
+                {
+                  // TODO: Generate Link List
+                  job && job.access
+                    ? JSON.stringify(job.access, null, 2)
+                    : 'Not Available'
+                }
               </pre>
             </TableCell>
           </TableRow>

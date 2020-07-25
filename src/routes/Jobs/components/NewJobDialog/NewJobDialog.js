@@ -152,9 +152,12 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             />
           )}
           <br />
-          {type === 'takeout' && source === 'dropbox' && (
-            <List label="Selected Files" id="fileList" />
-          )}
+          {
+            // TODO: Convert to FixedList
+            type === 'takeout' && source === 'dropbox' && (
+              <List label="Selected Files" id="fileList" />
+            )
+          }
           {type === 'transfer' && (source === 'aws' || source === 'azure') && (
             <TextField
               error={!!errors.awsIdAzureCon}
