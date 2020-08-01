@@ -10,11 +10,18 @@ import { useFirestoreDoc, useFirestore } from 'reactfire'
 import { JOBS_COLLECTION } from 'constants/firebasePaths'
 import { makeStyles } from '@material-ui/core/styles'
 import styles from './JobData.styles'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemText from '@material-ui/core/ListItemText'
+import List from '@material-ui/core/List'
 
 const useStyles = makeStyles(styles)
 
 function createData(label, data) {
   return { label, data }
+}
+
+function ListItemLink(props) {
+  return <ListItem button component="a" {...props} />
 }
 
 function JobData() {
@@ -85,17 +92,26 @@ function JobData() {
           ))}
           <TableRow>
             <TableCell component="th" scope="row">
-              Access URL(s)
+              File List
             </TableCell>
             <TableCell align="left">
-              <pre>
-                {
-                  // TODO: Generate Link List
-                  job && job.access
-                    ? JSON.stringify(job.access, null, 2)
-                    : 'Not Available'
-                }
-              </pre>
+              <List>
+                {job && job.access ? (
+                  job.access.map((file, i) => (
+                    <ListItemLink
+                      key={i}
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      <ListItemText primary={file.name} />
+                    </ListItemLink>
+                  ))
+                ) : (
+                  <ListItem>
+                    <ListItemText primary="Not Available" />
+                  </ListItem>
+                )}
+              </List>
             </TableCell>
           </TableRow>
         </TableBody>
