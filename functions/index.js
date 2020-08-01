@@ -5,7 +5,15 @@ const functions = require('firebase-functions')
 require('source-map-support/register')
 
 // Initialize Firebase so it is available within functions
-admin.initializeApp(functions.firebaseConfig())
+try {
+  admin.initializeApp(functions.config().firebase)
+} catch (e) {
+  /* istanbul ignore next: not called in tests */
+  console.error(
+    'Caught error initializing app with functions.config():',
+    e.message || e
+  )
+}
 
 // Set Firestore timestamp settings
 // NOTE: Skipped when running tests tests so it does not have to be mocked
