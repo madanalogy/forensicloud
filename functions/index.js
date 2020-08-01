@@ -1,10 +1,11 @@
 const glob = require('glob')
 const path = require('path')
 const admin = require('firebase-admin')
+const functions = require('firebase-functions')
 require('source-map-support/register')
 
 // Initialize Firebase so it is available within functions
-admin.initializeApp()
+admin.initializeApp(functions.firebaseConfig())
 
 // Set Firestore timestamp settings
 // NOTE: Skipped when running tests tests so it does not have to be mocked
