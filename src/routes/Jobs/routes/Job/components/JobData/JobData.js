@@ -1,6 +1,5 @@
 import React from 'react'
 import CardContent from '@material-ui/core/CardContent'
-import Typography from '@material-ui/core/Typography'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
@@ -42,6 +41,8 @@ function JobData() {
       : 'In Progress'
 
   const rows = [
+    createData('Job Name', job && job.name),
+    createData('Job Type', job && job.type && job.type.toUpperCase()),
     createData(
       'Source Details',
       'From: '
@@ -74,12 +75,6 @@ function JobData() {
 
   return (
     <CardContent>
-      <Typography component="h2">
-        Job Name: {(job && job.name) || 'Job'}
-      </Typography>
-      <Typography component="h3">
-        Job Type: {(job && job.type.toUpperCase()) || 'Unknown'}
-      </Typography>
       <Table className={classes.table} aria-label="simple table">
         <TableBody>
           {rows.map((row) => (
