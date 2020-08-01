@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - prod
+      - master
 
 jobs:
   deploy:
@@ -16,7 +17,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: 10
+          node-version: 12
 
       - name: Cache App Dependencies
         uses: actions/cache@v1

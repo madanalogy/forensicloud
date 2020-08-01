@@ -130,10 +130,20 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
                   appKey="7kka06lq8ldmf39"
                   success={(files) => {
                     setValue('files', files)
-                    files.forEach((file) => {
-                      const li = document.createElement('li')
-                      li.textContent = file.name
-                      document.getElementById('fileList').appendChild(li)
+                    const list = document.getElementById('fileList')
+                    while (list.firstChild) {
+                      list.removeChild(list.firstChild)
+                    }
+                    files.forEach((file, i) => {
+                      if (i <= 10) {
+                        const li = document.createElement('li')
+                        if (i === 10) {
+                          li.textContent = '... Only first 10 files are shown'
+                        } else {
+                          li.textContent = file.name
+                        }
+                        list.appendChild(li)
+                      }
                     })
                   }}
                   multiselect
@@ -152,12 +162,9 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             />
           )}
           <br />
-          {
-            // TODO: Convert to FixedList
-            type === 'takeout' && source === 'dropbox' && (
-              <List label="Selected Files" id="fileList" />
-            )
-          }
+          {type === 'takeout' && source === 'dropbox' && (
+            <List label="Selected Files" id="fileList" />
+          )}
           {type === 'transfer' && (source === 'aws' || source === 'azure') && (
             <TextField
               error={!!errors.awsIdAzureCon}
