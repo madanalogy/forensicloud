@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
 import { generateBucketName } from 'utils/helpers'
-import { projectId } from 'utils/const'
+import { projectId, signatureOptions } from 'utils/const'
 
 const { google } = require('googleapis')
 const { Storage } = require('@google-cloud/storage')
@@ -62,10 +62,6 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
         }
       )
       .catch(console.error)
-    const options = {
-      action: 'read',
-      expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
-    }
     const https = require('https')
     const bucket = storage.bucket(bucketName)
     await doc.get('files').forEach((dropboxFile) => {
@@ -93,7 +89,7 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
             jobRef.update({ status: 'FAILED' })
             return
           }
-          file.getSignedUrl(options, getSignedUrlCallback)
+          file.getSignedUrl(signatureOptions, getSignedUrlCallback)
         })
       }
       const httpGetCallback = function (response) {
