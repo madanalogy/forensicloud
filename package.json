@@ -7,7 +7,7 @@
     "clean": "rimraf dist",
     "build": "react-scripts build",
     "deploy": "firebase deploy --force",
-    "deploy:ci": "firebase-ci deploy -s --force",
+    "deploy:ci": "firebase deploy --force --token \"$FIREBASE_TOKEN\" --project default",
     "eject": "react-scripts eject",
     "start": "react-scripts start",
     "start:dist": "npm run build && firebase emulators:start --only hosting",
