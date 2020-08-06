@@ -1,7 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
 import { generateBucketName } from 'utils/helpers'
-import { signatureOptions } from 'utils/const'
 
 /**
  * Updates a cloud service job.
@@ -46,13 +45,17 @@ async function updateJob(message, context) {
 async function completeJob(jobId, jobRef) {
   const bucketName = await generateBucketName(jobId)
   const { Storage } = require('@google-cloud/storage')
+  const options = {
+    action: 'read',
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+  }
   return new Storage().bucket(bucketName).getFiles((err, files) => {
     if (err) {
       console.error(err)
       return
     }
     files.forEach((file) => {
-      file.getSignedUrl(signatureOptions, (e, signedUrl) => {
+      file.getSignedUrl(options, (e, signedUrl) => {
         if (e) {
           console.error(e)
           return
