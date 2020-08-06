@@ -41,6 +41,9 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
           <Controller
             as={
               <Select>
+                <MenuItem value="" disabled>
+                  Please Select
+                </MenuItem>
                 <MenuItem value="transfer">Storage Transfer</MenuItem>
                 <MenuItem value="takeout">Drive Takeout</MenuItem>
               </Select>
@@ -48,16 +51,22 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             name="type"
             rules={{ required: 'Type is required' }}
             control={control}
-            defaultValue="transfer"
+            defaultValue=""
+            displayEmpty
+            error={!!errors.type}
           />
           <br />
           <br />
-          <label htmlFor={Select}>Source: </label>
+          {(type === 'transfer' || type === 'takeout') && (
+            <label htmlFor={Select}>Source: </label>
+          )}
           {type === 'transfer' && (
             <Controller
               as={
                 <Select>
-                  <MenuItem value="gcloud">Google Cloud</MenuItem>
+                  <MenuItem value="gcloud" disabled>
+                    Google Cloud
+                  </MenuItem>
                   <MenuItem value="azure">Microsoft Azure</MenuItem>
                   <MenuItem value="aws">Amazon Web Services</MenuItem>
                 </Select>
@@ -65,7 +74,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               name="source"
               rules={{ required: 'Source is required' }}
               control={control}
-              defaultValue="gcloud"
+              defaultValue="aws"
             />
           )}
           {type === 'takeout' && (
@@ -96,8 +105,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               label={
                 (source === 'gcloud' && 'GCloud Bucket Name') ||
                 (source === 'aws' && 'AWS Bucket Name') ||
-                (source === 'azure' && 'Azure Storage Account') ||
-                'GCloud Bucket Name' // This was added due to error showing label on initial load
+                (source === 'azure' && 'Azure Storage Account')
               }
               inputRef={register({
                 required: true
@@ -135,10 +143,10 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
                       list.removeChild(list.firstChild)
                     }
                     files.forEach((file, i) => {
-                      if (i <= 10) {
+                      if (i <= 15) {
                         const li = document.createElement('li')
-                        if (i === 10) {
-                          li.textContent = '... Only first 10 files are shown'
+                        if (i === 15) {
+                          li.textContent = '... Only first 15 files are shown'
                         } else {
                           li.textContent = file.name
                         }
@@ -181,17 +189,19 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
               fullWidth
             />
           )}
-          <TextField
-            error={!!errors.name}
-            helperText={errors.name && 'Name is required'}
-            name="name"
-            label="Job Name"
-            inputRef={register({
-              required: true
-            })}
-            margin="normal"
-            fullWidth
-          />
+          {(type === 'transfer' || type === 'takeout') && (
+            <TextField
+              error={!!errors.name}
+              helperText={errors.name && 'Name is required'}
+              name="name"
+              label="Job Name"
+              inputRef={register({
+                required: true
+              })}
+              margin="normal"
+              fullWidth
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={onRequestClose} color="secondary">
