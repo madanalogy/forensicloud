@@ -47,7 +47,7 @@ async function completeJob(jobId, jobRef) {
   const { Storage } = require('@google-cloud/storage')
   const options = {
     action: 'read',
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+    expires: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
   }
   return new Storage().bucket(bucketName).getFiles((err, files) => {
     if (err) {

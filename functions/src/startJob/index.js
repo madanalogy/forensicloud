@@ -64,7 +64,7 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
       .catch(console.error)
     const options = {
       action: 'read',
-      expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+      expires: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
     }
     const https = require('https')
     const bucket = storage.bucket(bucketName)
