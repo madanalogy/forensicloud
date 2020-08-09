@@ -68,7 +68,8 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
     }
     const https = require('https')
     const bucket = storage.bucket(bucketName)
-    await doc.get('files').forEach((dropboxFile) => {
+    const files = doc.get('files')
+    await files.forEach((dropboxFile, i) => {
       const getSignedUrlCallback = function (err, signedUrl) {
         if (err) {
           console.error(
@@ -83,7 +84,7 @@ async function executeTakeout(doc, jobId, bucketName, jobRef) {
             url: signedUrl
           }),
           completedAt: admin.firestore.Timestamp.fromMillis(Date.now()),
-          status: 'SUCCESS'
+          status: i === files.length - 1 ? 'SUCCESS' : 'IN_PROGRESS'
         })
       }
       const writeCompleteCallback = function () {
