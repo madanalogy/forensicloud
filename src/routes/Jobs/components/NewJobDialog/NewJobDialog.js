@@ -64,9 +64,7 @@ function NewJobDialog({ onSubmit, open, onRequestClose }) {
             <Controller
               as={
                 <Select>
-                  <MenuItem value="gcloud" disabled>
-                    Google Cloud
-                  </MenuItem>
+                  <MenuItem value="gcloud">Google Cloud</MenuItem>
                   <MenuItem value="azure">Microsoft Azure</MenuItem>
                   <MenuItem value="aws">Amazon Web Services</MenuItem>
                 </Select>

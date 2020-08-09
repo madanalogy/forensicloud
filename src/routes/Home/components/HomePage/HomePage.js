@@ -46,8 +46,8 @@ function Home() {
             </Typography>
             <List>
               <ListItem>Dropbox</ListItem>
-              <ListItem>(Coming Soon) Google Drive</ListItem>
-              <ListItem>(Coming Soon) One Drive</ListItem>
+              <ListItem>Google Drive</ListItem>
+              <ListItem>One Drive</ListItem>
             </List>
           </Grid>
           <Grid item sm className={classes.section}>
@@ -86,6 +86,16 @@ function Home() {
           </Grid>
         </Grid>
       </Paper>
+      <br />
+      <iframe
+        title="ForensiCloud Demo"
+        width="560"
+        height="315"
+        src="https://www.youtube.com/embed/cZq8e_ekWLo"
+        frameBorder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
       <Typography variant="h3" component="h3" gutterBottom>
         <a href={github} target="_blank" rel="noopener noreferrer">
           <GitHubIcon />
