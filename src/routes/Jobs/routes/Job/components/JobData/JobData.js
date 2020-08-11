@@ -33,11 +33,11 @@ function JobData() {
   const job = jobSnap.data()
   const createdAt =
     job && job.createdAt
-      ? new Date(job.createdAt.seconds * 1000).toDateString()
+      ? new Date(job.createdAt.seconds * 1000).toString()
       : 'error'
   const completedAt =
     job && job.completedAt
-      ? new Date(job.completedAt.seconds * 1000).toDateString()
+      ? new Date(job.completedAt.seconds * 1000).toString()
       : 'In Progress'
 
   const rows = [
