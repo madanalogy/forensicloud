@@ -5,6 +5,8 @@
 [![License][license-image]][license-url]
 [![Code Style][code-style-image]][code-style-url]
 
+Built for HTX in 2020. [Project report available here](https://docs.google.com/document/d/1HoHbxT_Ggu92P3ZmBEcK1277CEgjNl0eKRlwNE2Fyz8/edit?usp=sharing).
+
 ## Table of Contents
 
 1. [Features](#features)
