@@ -28,7 +28,7 @@
     "firebase-functions": "^3.9.0",
     "glob": "^7.1.6",
     "googleapis": "^52.1.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "source-map-support": "^0.5.19"
   },
   "devDependencies": {
